@@ -62,13 +62,17 @@ def create_app() -> FastAPI:
     @app.on_event("startup")
     def on_startup():
         from agentos.core.manager.database import create_db_and_tables
+        # Import models so SQLModel.metadata knows about all tables
+        from agentos.core.orchestrator.models import Task  # noqa: F401
         create_db_and_tables()
 
     # ------------------------------------------------------------------
     # Include routers
     # ------------------------------------------------------------------
     from agentos.api.routes.agents import router as agents_router
+    from agentos.api.routes.tasks import router as tasks_router
     app.include_router(agents_router)
+    app.include_router(tasks_router)
 
     # ------------------------------------------------------------------
     # Health & Info

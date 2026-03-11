@@ -76,6 +76,7 @@ agentos/
 - [x] **Phase 2.2** — Agent Manager Registry (COMPLETED)
 - [x] **Phase 2.3** — API Routes — Agents (COMPLETED)
 - [x] **Phase 2.4** — Runtime Configuration System (COMPLETED)
+- [x] **Phase 3.1** — Task Lifecycle Model (COMPLETED)
 
 ---
 
@@ -159,20 +160,22 @@ Implement the fundamental agent execution engine that runs agent workflows using
 
 ## 📋 Phase 3 — Task Orchestration System
 
-> **Status**: NOT STARTED | **Depends on**: Phase 2
+> **Status**: IN PROGRESS | **Depends on**: Phase 2
 
 ### Objective
 Introduce task scheduling, lifecycle management, and async execution via Celery + Redis.
 
 ### Sub-Phases
 
-#### 3.1 Task Lifecycle Model
-- [ ] Define task states: `Created → Queued → Running → Paused → Completed / Failed`
-- [ ] Create Pydantic models for Task (`TaskSchema`)
-- [ ] Implement state machine transitions with validation
-- [ ] Persist task state in PostgreSQL
+#### 3.1 Task Lifecycle Model ✅
+- [x] Define task states: `Created → Queued → Running → Paused → Completed / Failed / Cancelled`
+- [x] Create SQLModel/Pydantic models for Task (`Task`, `TaskCreate`, `TaskUpdate`, `TaskResponse`)
+- [x] Implement state machine transitions with validation (`VALID_TRANSITIONS` dict)
+- [x] Persist task state in PostgreSQL
+- [x] CRUD service with state enforcement (`orchestrator/service.py`)
+- [x] API routes: `POST /tasks/create`, `GET /tasks`, `GET /tasks/{id}`, `PATCH /tasks/{id}/status`, `DELETE /tasks/{id}`
 
-**Key Files**: `backend/src/agentos/core/orchestrator/models.py`
+**Key Files**: `core/orchestrator/models.py`, `core/orchestrator/service.py`, `api/routes/tasks.py`
 
 #### 3.2 Task Queue Integration (Celery + Redis)
 - [ ] Configure Celery with Redis as broker
