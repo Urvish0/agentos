@@ -11,15 +11,14 @@ def main():
     if src_path not in sys.path:
         sys.path.insert(0, src_path)
 
-    host = os.getenv("API_HOST", "127.0.0.1")
-    port = int(os.getenv("API_PORT", "8000"))
-    reload = os.getenv("DEBUG", "true").lower() == "true"
+    # Load config after src is in path
+    from agentos.core.runtime.config import config
 
     uvicorn.run(
         "agentos.api.app:app",
-        host=host,
-        port=port,
-        reload=reload,
+        host=config.api_host,
+        port=config.api_port,
+        reload=config.debug,
         proxy_headers=True,
         forwarded_allow_ips="*",
     )

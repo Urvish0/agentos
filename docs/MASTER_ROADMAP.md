@@ -75,6 +75,7 @@ agentos/
 - [x] **Phase 2.1** — Agent Runtime Engine (COMPLETED)
 - [x] **Phase 2.2** — Agent Manager Registry (COMPLETED)
 - [x] **Phase 2.3** — API Routes — Agents (COMPLETED)
+- [x] **Phase 2.4** — Runtime Configuration System (COMPLETED)
 
 ---
 
@@ -136,14 +137,14 @@ Implement the fundamental agent execution engine that runs agent workflows using
 
 **Key Files**: `api/routes/agents.py`
 
-#### 2.4 Runtime Configuration System
-- [ ] Create a configuration loader (from `.env`, YAML, or CLI args)
-- [ ] Define runtime config schema (model provider, timeout, retry policy, etc.)
-- [ ] Wire configuration into the runtime engine
-- [ ] Add multi-provider LLM support (OpenAI, Anthropic, Google) in `core/runtime/llm.py`
-- [ ] Support streaming output from the reasoning loop
+#### 2.4 Runtime Configuration System ✅
+- [x] Create a configuration loader using Pydantic Settings (`core/runtime/config.py`)
+- [x] Define runtime config schema (provider, timeout, retry, model, temperature, max_tokens)
+- [x] Wire configuration into runtime engine, database, and app factory
+- [x] Add multi-provider LLM support (Groq, OpenAI, Anthropic) with registry pattern
+- [x] Support streaming output via `POST /agent/run/stream` (SSE)
 
-**Key Files**: `backend/src/agentos/core/runtime/config.py`
+**Key Files**: `core/runtime/config.py`, `core/runtime/llm.py`, `api/app.py`
 
 ### Deliverables
 - A working agent that can be registered via API and execute a simple reasoning task

@@ -1,24 +1,11 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 import structlog
-import os
-from pathlib import Path
-from dotenv import load_dotenv
+import json
 
-# Load .env — search upward from this file to find .env
-def _find_and_load_dotenv():
-    """Walk up from this file's directory to find .env"""
-    current = Path(__file__).resolve().parent
-    for _ in range(10):  # max 10 levels up
-        env_file = current / ".env"
-        if env_file.exists():
-            load_dotenv(dotenv_path=str(env_file))
-            return str(env_file)
-        current = current.parent
-    return None
-
-_env_path = _find_and_load_dotenv()
+from agentos.core.runtime.config import config
 
 logger = structlog.get_logger()
 
@@ -32,6 +19,7 @@ class AgentRunRequest(BaseModel):
     input: str = Field(..., description="The user's input or goal for the agent")
     model: str | None = Field(None, description="Override the default LLM model")
     system_prompt: str | None = Field(None, description="Override the system prompt")
+    provider: str | None = Field(None, description="LLM provider: groq, openai, anthropic")
 
 
 class AgentRunResponse(BaseModel):
@@ -91,8 +79,9 @@ def create_app() -> FastAPI:
         return {
             "status": "healthy",
             "version": "0.1.0",
-            "env_loaded": _env_path is not None,
-            "groq_configured": bool(os.getenv("GROQ_API_KEY")),
+            "llm_provider": config.llm_provider,
+            "default_model": config.default_model,
+            "groq_configured": bool(config.groq_api_key),
         }
 
     @app.get("/")
@@ -100,23 +89,29 @@ def create_app() -> FastAPI:
         return {"message": "Welcome to AgentOS API"}
 
     # ------------------------------------------------------------------
-    # Agent Runtime
+    # Agent Runtime — Standard (full response)
     # ------------------------------------------------------------------
 
     @app.post("/agent/run", response_model=AgentRunResponse)
     async def run_agent(request: AgentRunRequest):
         """
         Execute an agent with the given input.
-        Uses the LangGraph runtime engine with Groq LLM.
+        Returns the complete response after the agent finishes reasoning.
         """
         try:
             from agentos.core.runtime.runtime import AgentRuntime
 
-            logger.info("Agent run requested", input=request.input, model=request.model)
+            logger.info(
+                "Agent run requested",
+                input=request.input,
+                model=request.model,
+                provider=request.provider,
+            )
 
             runtime = AgentRuntime(
                 model=request.model,
                 system_prompt=request.system_prompt,
+                provider=request.provider,
             )
             result = await runtime.run(
                 input_text=request.input,
@@ -131,7 +126,50 @@ def create_app() -> FastAPI:
             logger.error("Agent run failed", error=str(e), exc_info=True)
             raise HTTPException(status_code=500, detail=str(e))
 
+    # ------------------------------------------------------------------
+    # Agent Runtime — Streaming (token-by-token)
+    # ------------------------------------------------------------------
+
+    @app.post("/agent/run/stream")
+    async def run_agent_stream(request: AgentRunRequest):
+        """
+        Execute an agent with streaming output.
+        Returns Server-Sent Events (SSE) with tokens as they arrive.
+        """
+        from agentos.core.runtime.runtime import AgentRuntime
+
+        logger.info(
+            "Agent stream requested",
+            input=request.input,
+            model=request.model,
+            provider=request.provider,
+        )
+
+        runtime = AgentRuntime(
+            model=request.model,
+            system_prompt=request.system_prompt,
+            provider=request.provider,
+        )
+
+        async def event_stream():
+            try:
+                async for chunk in runtime.run_stream(
+                    input_text=request.input,
+                    system_prompt=request.system_prompt,
+                ):
+                    yield f"data: {json.dumps(chunk)}\n\n"
+
+                yield "data: [DONE]\n\n"
+
+            except Exception as e:
+                error_data = {"error": str(e)}
+                yield f"data: {json.dumps(error_data)}\n\n"
+
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream",
+        )
+
     return app
 
 app = create_app()
-

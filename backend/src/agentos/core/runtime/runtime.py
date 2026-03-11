@@ -76,11 +76,13 @@ class AgentRuntime:
         model: str | None = None,
         temperature: float = 0.7,
         system_prompt: str | None = None,
+        provider: str | None = None,
     ):
         self.model = model
         self.temperature = temperature
         self.system_prompt = system_prompt or DEFAULT_SYSTEM_PROMPT
-        self.llm = get_llm(model=model, temperature=temperature)
+        self.provider = provider
+        self.llm = get_llm(model=model, temperature=temperature, provider=provider)
         self.graph = self._build_graph()
 
     # ------------------------------------------------------------------
@@ -226,3 +228,51 @@ class AgentRuntime:
             "execution_time_ms": round(execution_time_ms, 2),
             "error": result.get("error"),
         }
+
+    async def run_stream(
+        self,
+        input_text: str,
+        system_prompt: str | None = None,
+    ):
+        """
+        Stream the agent's response token by token.
+
+        Yields dicts with keys: type ("token" | "done"), content, run_id
+        """
+        from langchain_core.messages import HumanMessage, SystemMessage
+
+        run_id = str(uuid.uuid4())
+        prompt = system_prompt if system_prompt else self.system_prompt
+
+        logger.info("Agent stream started", run_id=run_id, input=input_text)
+
+        messages = [
+            SystemMessage(content=prompt),
+            HumanMessage(content=input_text),
+        ]
+
+        full_content = ""
+        try:
+            async for chunk in self.llm.astream(messages):
+                token = chunk.content
+                if token:
+                    full_content += token
+                    yield {
+                        "type": "token",
+                        "content": token,
+                        "run_id": run_id,
+                    }
+
+            yield {
+                "type": "done",
+                "content": full_content,
+                "run_id": run_id,
+            }
+
+        except Exception as e:
+            logger.error("Stream failed", run_id=run_id, error=str(e))
+            yield {
+                "type": "error",
+                "content": str(e),
+                "run_id": run_id,
+            }

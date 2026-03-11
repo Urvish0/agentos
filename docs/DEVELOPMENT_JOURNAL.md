@@ -58,3 +58,21 @@
 - **Healthcheck Fix**: A noisy error in Docker logs (`database "agentos" does not exist`) was caused by the healthcheck command defaulting to the username. Specifying `-d agentos_db` fixed the diagnostic spam, ensuring we have a clean development environment.
 
 ---
+
+## ⚙️ Phase 2.4: Runtime Configuration System
+**Date:** March 11, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Created a **centralized Pydantic Settings** config (`config.py`) that loads all settings from `.env`.
+- Refactored `llm.py` with a **multi-provider registry** supporting Groq, OpenAI, and Anthropic.
+- Added a `POST /agent/run/stream` endpoint for **Server-Sent Events (SSE)** streaming.
+- Wired config into `main.py`, `database.py`, and `app.py` — eliminating all scattered `os.getenv` calls.
+
+### Why we did it
+- **Pydantic Settings**: Instead of having `os.getenv("GROQ_API_KEY")` scattered across 5 different files, we now have one `config` object. Import it anywhere, and you get type-safe, validated settings. If a critical key is missing, the app fails **at startup** instead of crashing mid-request.
+- **Multi-Provider Registry**: We used a **Dictionary of Functions** pattern. Each provider (groq, openai, anthropic) maps to a factory function. To add a new provider, you just add one entry to the dict — no `if/elif` chains.
+- **Lazy Imports**: OpenAI and Anthropic use `from langchain_openai import ...` **inside** their factory functions, not at the top of the file. This means the app doesn't crash if you haven't installed `langchain-openai` — it only fails when you actually try to use it.
+- **SSE Streaming**: Instead of waiting 3-5 seconds for the full response, users can see tokens arrive in real-time. This uses `async for chunk in self.llm.astream(messages)` — LangChain's built-in streaming. The API wraps it as Server-Sent Events, the web standard for real-time data.
+
+---
