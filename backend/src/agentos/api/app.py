@@ -69,6 +69,20 @@ def create_app() -> FastAPI:
     )
 
     # ------------------------------------------------------------------
+    # Database initialization on startup
+    # ------------------------------------------------------------------
+    @app.on_event("startup")
+    def on_startup():
+        from agentos.core.manager.database import create_db_and_tables
+        create_db_and_tables()
+
+    # ------------------------------------------------------------------
+    # Include routers
+    # ------------------------------------------------------------------
+    from agentos.api.routes.agents import router as agents_router
+    app.include_router(agents_router)
+
+    # ------------------------------------------------------------------
     # Health & Info
     # ------------------------------------------------------------------
 
@@ -120,3 +134,4 @@ def create_app() -> FastAPI:
     return app
 
 app = create_app()
+

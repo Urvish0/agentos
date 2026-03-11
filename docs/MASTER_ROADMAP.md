@@ -72,6 +72,9 @@ agentos/
 ## ✅ Current Status
 
 - [x] **Phase 1** — Project Initialization (COMPLETED)
+- [x] **Phase 2.1** — Agent Runtime Engine (COMPLETED)
+- [x] **Phase 2.2** — Agent Manager Registry (COMPLETED)
+- [x] **Phase 2.3** — API Routes — Agents (COMPLETED)
 
 ---
 
@@ -99,44 +102,46 @@ agentos/
 
 ## 📋 Phase 2 — Core Runtime Infrastructure
 
-> **Status**: NOT STARTED | **Depends on**: Phase 1
+> **Status**: IN PROGRESS | **Depends on**: Phase 1
 
 ### Objective
 Implement the fundamental agent execution engine that runs agent workflows using LangGraph.
 
 ### Sub-Phases
 
-#### 2.1 Agent Runtime Engine
-- [ ] Implement the LangGraph reasoning loop in `core/runtime/runtime.py`
-- [ ] Create `AgentState` with proper fields: `input`, `chat_history`, `plan`, `tools_called`, `output`
-- [ ] Implement the `reason` → `act` → `observe` cycle as LangGraph nodes
-- [ ] Add LLM interface abstraction (support OpenAI, Anthropic, Google models)
-- [ ] Support streaming output from the reasoning loop
+#### 2.1 Agent Runtime Engine ✅
+- [x] Implement the LangGraph reasoning loop in `core/runtime/runtime.py` (`reason → respond → END`)
+- [x] Create `AgentState` with core fields: `input`, `system_prompt`, `reasoning_steps`, `messages`, `output`
+- [x] Add LLM interface abstraction (`core/runtime/llm.py`) — Groq provider
+- [x] Add `POST /agent/run` API endpoint with token tracking
+- [x] Robust `.env` loading and error handling
 
-**Key File**: `backend/src/agentos/core/runtime/runtime.py`
+**Key Files**: `core/runtime/runtime.py`, `core/runtime/llm.py`, `api/app.py`
 
-#### 2.2 Agent Manager (Registry)
-- [ ] Create Pydantic models for Agent metadata (`AgentSchema`)
-- [ ] Implement agent CRUD operations (register, get, list, update, delete)
-- [ ] Set up SQLAlchemy/SQLModel with PostgreSQL for agent storage
-- [ ] Add agent versioning support
+#### 2.2 Agent Manager (Registry) ✅
+- [x] Create Pydantic models for Agent metadata (`AgentCreate`, `AgentUpdate`, `AgentResponse`)
+- [x] Implement agent CRUD operations (register, get, list, update, delete)
+- [x] Set up SQLModel with PostgreSQL for agent storage
+- [x] Add agent versioning support (`version` field, updatable via PUT)
 
-**Key Files**: `backend/src/agentos/core/manager/`
+**Key Files**: `core/manager/models.py`, `core/manager/service.py`, `core/manager/database.py`
 
-#### 2.3 API Routes — Agents
-- [ ] `POST /agents/register` — Register a new agent
-- [ ] `GET /agents` — List all agents
-- [ ] `GET /agents/{agent_id}` — Get agent details
-- [ ] `PUT /agents/{agent_id}` — Update agent
-- [ ] `DELETE /agents/{agent_id}` — Delete agent
-- [ ] Add request/response schemas in `api/schemas/`
+#### 2.3 API Routes — Agents ✅
+- [x] `POST /agents/register` — Register a new agent
+- [x] `GET /agents` — List all agents
+- [x] `GET /agents/{agent_id}` — Get agent details
+- [x] `PUT /agents/{agent_id}` — Update agent
+- [x] `DELETE /agents/{agent_id}` — Delete agent
+- [x] Request/response schemas in `core/manager/models.py`
 
-**Key Files**: `backend/src/agentos/api/routes/`, `backend/src/agentos/api/schemas/`
+**Key Files**: `api/routes/agents.py`
 
 #### 2.4 Runtime Configuration System
 - [ ] Create a configuration loader (from `.env`, YAML, or CLI args)
 - [ ] Define runtime config schema (model provider, timeout, retry policy, etc.)
 - [ ] Wire configuration into the runtime engine
+- [ ] Add multi-provider LLM support (OpenAI, Anthropic, Google) in `core/runtime/llm.py`
+- [ ] Support streaming output from the reasoning loop
 
 **Key Files**: `backend/src/agentos/core/runtime/config.py`
 
@@ -208,6 +213,8 @@ Enable agents to call external tools via a standardized interface using MCP.
 - [ ] Define tool interface (name, description, parameters, handler)
 - [ ] Implement tool registration and discovery
 - [ ] Create a tool catalog accessible by the runtime
+- [ ] Expand `AgentState` with `chat_history`, `plan`, `tools_called` fields
+- [ ] Implement full `reason → act → observe` cycle as LangGraph nodes
 
 **Key Files**: `backend/src/agentos/core/tools/registry.py`
 

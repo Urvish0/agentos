@@ -40,15 +40,21 @@
 
 ---
 
-## 📂 Phase 2.2: Agent Manager (Registry)
-**Date:** TBD
-**Status:** ⏳ Next Up
+## 📂 Phase 2.2 & 2.3: Agent Manager (Registry & API)
+**Date:** March 11, 2026
+**Status:** ✅ Completed
 
-### What we're doing
-- Implementing SQLAlchemy/SQLModel to store agent configurations in PostgreSQL.
-- Building CRUD (Create, Read, Update, Delete) APIs for agents.
+### What we did
+- Set up **SQLModel** (SQLAlchemy + Pydantic) for PostgreSQL-backed storage.
+- Created a robust Agent model with versioning and configuration fields.
+- Implemented a Service Layer (`service.py`) for all CRUD (Create, Read, Update, Delete) operations.
+- Built RESTful API endpoints in `api/routes/agents.py`.
+- Fixed a silent bug in the Docker healthcheck for PostgreSQL.
 
-### Why we're doing it
-- A brain needs a "personality" and a "memory of who it is." The Registry allows us to define specific agent types (e.g., "The Python Expert" with a specific system prompt and model) and save them to a database so they can be reused and shared across the platform.
+### Why we did it
+- **SQLModel**: We chose SQLModel because it combines the power of SQLAlchemy (for database operations) with Pydantic (for data validation). This means we write our data models **once** and they work for both the database and the API.
+- **Service Layer Pattern**: Instead of putting database code directly in our API routes, we put it in `service.py`. This makes the code cleaner, easier to test, and reusable (the CLI we build later can use the same services).
+- **Versioning**: By adding a `version` field to agents from the start, we ensure that as agents evolve, their configurations can be tracked and managed professionally.
+- **Healthcheck Fix**: A noisy error in Docker logs (`database "agentos" does not exist`) was caused by the healthcheck command defaulting to the username. Specifying `-d agentos_db` fixed the diagnostic spam, ensuring we have a clean development environment.
 
 ---
