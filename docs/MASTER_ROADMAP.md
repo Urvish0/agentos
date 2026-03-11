@@ -77,6 +77,7 @@ agentos/
 - [x] **Phase 2.3** — API Routes — Agents (COMPLETED)
 - [x] **Phase 2.4** — Runtime Configuration System (COMPLETED)
 - [x] **Phase 3.1** — Task Lifecycle Model (COMPLETED)
+- [x] **Phase 3.2** — Task Queue Integration (COMPLETED)
 
 ---
 
@@ -177,14 +178,13 @@ Introduce task scheduling, lifecycle management, and async execution via Celery 
 
 **Key Files**: `core/orchestrator/models.py`, `core/orchestrator/service.py`, `api/routes/tasks.py`
 
-#### 3.2 Task Queue Integration (Celery + Redis)
-- [ ] Configure Celery with Redis as broker
-- [ ] Create Celery tasks that invoke the Agent Runtime
-- [ ] Implement task submission API: `POST /tasks/create`
-- [ ] Implement task status API: `GET /tasks/{task_id}`
-- [ ] Add task listing: `GET /tasks`
+#### 3.2 Task Queue Integration (Celery + Redis) ✅
+- [x] Configure Celery with Redis as broker (`core/orchestrator/celery_app.py`)
+- [x] Create Celery tasks that invoke the Agent Runtime (`core/orchestrator/tasks.py`)
+- [x] Update task submission API to automatically enqueue: `POST /tasks/create`
+- [x] Implement task status tracking via background updates
 
-**Key Files**: `backend/src/agentos/core/orchestrator/tasks.py`, `backend/src/agentos/core/orchestrator/celery_app.py`
+**Key Files**: `core/orchestrator/tasks.py`, `core/orchestrator/celery_app.py`
 
 #### 3.3 Retry and Failure Handling
 - [ ] Implement configurable retry policies (max retries, backoff)

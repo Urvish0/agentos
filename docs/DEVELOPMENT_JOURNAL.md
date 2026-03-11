@@ -76,3 +76,36 @@
 - **SSE Streaming**: Instead of waiting 3-5 seconds for the full response, users can see tokens arrive in real-time. This uses `async for chunk in self.llm.astream(messages)` — LangChain's built-in streaming. The API wraps it as Server-Sent Events, the web standard for real-time data.
 
 ---
+
+## 📋 Phase 3.1: Task Lifecycle Model
+**Date:** March 11, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Defined a **7-state Task Lifecycle**: `created`, `queued`, `running`, `paused`, `completed`, `failed`, and `cancelled`.
+- Implemented a **Strict State Machine** in `orchestrator/models.py` with validated transitions.
+- Created a **Service Layer** (`service.py`) that rejects illegal operations (e.g., trying to run a completed task).
+- Added a full set of **Task API Routes** for lifecycle management.
+
+### Why we did it
+- **State Machine Foundation**: In an asynchronous system (where Celery workers will be running tasks), you cannot allow "race conditions" where two processes try to move a task to different states. A strict state machine ensures the task history is always logical.
+- **Separation of Concerns**: Just like with agents, we separated the Task Database logic into a service layer. This allows our background workers to update task status using the same validated logic that the API uses.
+
+---
+
+## ⚡ Phase 3.2: Task Queue Integration (Celery + Redis)
+**Date:** March 11, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Initialized **Celery** as our asynchronous task runner.
+- Configured **Redis** as the message broker (to hold tasks) and the results backend.
+- Created `run_agent_task` — a background worker function that executes agents without blocking the API.
+- Re-wired `POST /tasks/create` so it automatically triggers background execution.
+
+### Why we did it
+- **Non-Blocking APIs**: AI agents can take seconds or even minutes to think. If we ran them directly in the API call, the browser/client would time out. By using Celery, the API returns a Task ID **immediately** (in milliseconds), and the agent works in the background.
+- **Worker Isolation**: Background tasks run in separate "Worker" processes. This means if an agent crashes or consumes too much memory, it won't crash the main API server.
+- **Persistence & Visibility**: Because the worker updates the same PostgreSQL `task` table, the user can refresh their dashboard and see the status change from `queued` to `running` to `completed` in real-time.
+
+---

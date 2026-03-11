@@ -24,10 +24,8 @@ def create_task(
     session: Session = Depends(get_session),
 ):
     """
-    Create a new task for an agent.
-
-    The task starts in 'created' state. To execute it,
-    transition it to 'queued' and then 'running'.
+    Create a new task for an agent and automatically trigger background execution.
+    The task transitions from created -> queued and is sent to Celery.
     """
     # Verify the agent exists
     agent = agent_service.get_agent(session, task_data.agent_id)
@@ -36,7 +34,18 @@ def create_task(
             status_code=404,
             detail=f"Agent '{task_data.agent_id}' not found. Register an agent first.",
         )
+    
+    # 1. Create in 'created' state
     task = service.create_task(session, task_data)
+    
+    # 2. Transition to 'queued'
+    task = service.update_task_status(session, task.id, "queued")
+    
+    # 3. Trigger background execution via Celery
+    from agentos.core.orchestrator.tasks import run_agent_task
+    run_agent_task.delay(task.id)
+    
+    logger.info("Task enqueued for background execution", task_id=task.id)
     return task
 
 
