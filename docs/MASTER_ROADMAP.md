@@ -13,6 +13,7 @@
 |:---|:---|:---|
 | **Vision** | `docs/architecture/VISION.md` | Strategic goals and core philosophy |
 | **ARS** | `docs/architecture/ARS.md` | Architecture requirements, features, and integration strategy |
+| **Journal** | `docs/DEVELOPMENT_JOURNAL.md` | **Learning Log: What we built & Why** |
 | **URS** | `docs/architecture/URS.md` | User personas, stories, and journeys |
 | **SRS** | `docs/architecture/SRS.md` | Functional and non-functional system requirements with acceptance criteria |
 | **System Architecture** | `docs/architecture/SYSTEM_ARCHUTECTURE.md` | High-level component diagram, data flows, and deployment architecture |
