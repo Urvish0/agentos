@@ -84,6 +84,16 @@ class RuntimeConfig(BaseSettings):
         description="JSON configuration for MCP servers to connect on startup",
     )
 
+    # --- Built-in Tools ---
+    tavily_api_key: str = Field(
+        default="",
+        description="API Key for Tavily search (optional)",
+    )
+    agent_sandbox_path: str = Field(
+        default="./storage/agents",
+        description="Base directory for agent filesystem operations",
+    )
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",

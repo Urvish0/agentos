@@ -161,3 +161,22 @@
 - **Scalability**: Supporting async tool calls ensures that the backend can handle many concurrent agent runs without blocking on slow external API responses.
 
 ---
+
+## 🛠️ Phase 4.3: Built-in Tools Implementation
+**Date:** March 12, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Created a `builtins` package containing core tools for every AgentOS agent.
+- Implemented **Sandboxed Filesystem** tools (`read_file`, `write_file`, `list_directory`) that restrict operations to a configurable `./storage/agents` directory.
+- Implemented **Python Executor** tool, allowing agents to run arbitrary Python code in a child process. This is the foundation for "self-evolving" agents that can create their own tools.
+- Implemented **HTTP Request** tool using `httpx` for raw web interaction.
+- Implemented **Tavily Search** tool for high-quality, agent-optimized web search.
+- Configured **ToolRegistry** to automatically load and register these tools on system startup.
+
+### Why we did it
+- **Standard Library**: Every OS needs a standard library. These tools provide the "out-of-the-box" utility that makes AgentOS immediately useful for developers.
+- **Safety**: By sandboxing file access, we ensure that agents (and the LLMs powering them) cannot accidentally or maliciously damage the host system or access sensitive configuration files.
+- **Strategic Foundation**: The Python Executor is the first step toward the "Master Agent" concept—allowing agents to write and test their own logic dynamically.
+
+---

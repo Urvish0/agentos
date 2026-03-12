@@ -72,18 +72,26 @@ class ToolRegistry:
                 success=False
             )
 
+    def register_builtin_tools(self):
+        """Register all built-in AgentOS tools."""
+        from agentos.core.tools.builtins.filesystem import list_directory, read_file, write_file, ListDirArgs, ReadFileArgs, WriteFileArgs
+        from agentos.core.tools.builtins.http import http_request, HttpRequestArgs
+        from agentos.core.tools.builtins.python_executor import execute_python, PythonExecutorArgs
+        from agentos.core.tools.builtins.search import search, SearchArgs
+
+        # Filesystem
+        self.register_tool("list_directory", "List files in the sandboxed filesystem", list_directory, ListDirArgs)
+        self.register_tool("read_file", "Read text content from a file in the sandbox", read_file, ReadFileArgs)
+        self.register_tool("write_file", "Write text content to a file in the sandbox", write_file, WriteFileArgs)
+        
+        # HTTP
+        self.register_tool("http_request", "Make an HTTP GET/POST request to any URL", http_request, HttpRequestArgs)
+        
+        # Python
+        self.register_tool("execute_python", "Execute a Python script for data processing or tool creation", execute_python, PythonExecutorArgs)
+        
+        # Search
+        self.register_tool("search", "Search the web for real-time information using Tavily", search, SearchArgs)
+
 registry = ToolRegistry()
-
-# Example Tool
-def get_weather(location: str):
-    return f"The weather in {location} is sunny and 25°C (Simulated)."
-
-class WeatherArgs(BaseModel):
-    location: str
-
-registry.register_tool(
-    name="get_weather",
-    description="Get current weather for a specific city or region",
-    handler=get_weather,
-    args_schema=WeatherArgs
-)
+registry.register_builtin_tools()

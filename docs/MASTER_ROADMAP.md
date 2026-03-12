@@ -232,11 +232,11 @@ Enable agents to call external tools via a standardized interface using MCP.
 
 **Key Files**: `backend/src/agentos/core/tools/mcp_manager.py`
 
-#### 4.3 Built-in Tools
-- [ ] Web search tool
-- [ ] Filesystem access tool
-- [ ] HTTP request tool
-- [ ] (Optional) GitHub integration tool
+#### 4.3 Built-in Tools ✅
+- [x] Web search tool (Tavily integration)
+- [x] Filesystem access tool (Sandboxed)
+- [x] HTTP request tool (httpx)
+- [x] Python Execution tool (for data/tool creation)
 
 **Key Files**: `backend/src/agentos/core/tools/builtins/`
 

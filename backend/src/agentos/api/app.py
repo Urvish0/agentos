@@ -20,6 +20,7 @@ class AgentRunRequest(BaseModel):
     model: str | None = Field(None, description="Override the default LLM model")
     system_prompt: str | None = Field(None, description="Override the system prompt")
     provider: str | None = Field(None, description="LLM provider: groq, openai, anthropic")
+    tools: list[str] | None = Field(default=None, description="List of tools to enable for this run")
 
 
 class AgentRunResponse(BaseModel):
@@ -121,6 +122,7 @@ def create_app() -> FastAPI:
                 model=request.model,
                 system_prompt=request.system_prompt,
                 provider=request.provider,
+                tools=request.tools,
             )
             result = await runtime.run(
                 input_text=request.input,
@@ -158,6 +160,7 @@ def create_app() -> FastAPI:
             model=request.model,
             system_prompt=request.system_prompt,
             provider=request.provider,
+            tools=request.tools,
         )
 
         async def event_stream():
