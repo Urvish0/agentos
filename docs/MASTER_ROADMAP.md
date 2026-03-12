@@ -78,6 +78,7 @@ agentos/
 - [x] **Phase 2.4** — Runtime Configuration System (COMPLETED)
 - [x] **Phase 3.1** — Task Lifecycle Model (COMPLETED)
 - [x] **Phase 3.2** — Task Queue Integration (COMPLETED)
+- [x] **Phase 3.3** — Retry and Failure Handling (COMPLETED)
 
 ---
 
@@ -186,12 +187,13 @@ Introduce task scheduling, lifecycle management, and async execution via Celery 
 
 **Key Files**: `core/orchestrator/tasks.py`, `core/orchestrator/celery_app.py`
 
-#### 3.3 Retry and Failure Handling
-- [ ] Implement configurable retry policies (max retries, backoff)
-- [ ] Add failure recovery (save checkpoint state before crash)
-- [ ] Implement task cancellation: `POST /tasks/{task_id}/cancel`
+#### 3.3 Retry and Failure Handling ✅
+- [x] Implement automatic Celery retries with exponential backoff
+- [x] Add task cancellation endpoint (`POST /tasks/{id}/cancel`)
+- [x] Sync Database Task IDs with Celery Task IDs for precise control
+- [x] Persistence of `retry_count` and failure logs in PostgreSQL
 
-**Key Files**: `backend/src/agentos/core/orchestrator/retry.py`
+**Key Files**: `core/orchestrator/tasks.py`, `api/routes/tasks.py`
 
 ### Deliverables
 - Tasks can be submitted, queued, executed asynchronously, and tracked

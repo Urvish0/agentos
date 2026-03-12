@@ -23,7 +23,15 @@ class AgentTask(CeleryTask):
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         logger.error("Celery task failed", task_id=task_id, error=str(exc))
 
-@celery_app.task(bind=True, base=AgentTask, name="agentos.core.orchestrator.tasks.run_agent_task")
+@celery_app.task(
+    bind=True,
+    base=AgentTask,
+    name="agentos.core.orchestrator.tasks.run_agent_task",
+    autoretry_for=(Exception,),
+    retry_backoff=True,
+    retry_backoff_max=600,
+    max_retries=3,
+)
 def run_agent_task(self, task_id: str) -> Dict[str, Any]:
     """
     Background task to execute an agent.
@@ -33,7 +41,7 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
     3. Runs AgentRuntime.
     4. Updates DB with results/errors.
     """
-    logger.info("Starting background agent task", task_id=task_id)
+    logger.info("Starting background agent task", task_id=task_id, retry=self.request.retries)
     
     with Session(engine) as session:
         # 1. Get Task
@@ -41,21 +49,24 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
         if not db_task:
             return {"status": "error", "message": f"Task {task_id} not found"}
 
+        # Update retry count in DB if this is a retry
+        if self.request.retries > 0:
+            db_task.retry_count = self.request.retries
+            session.add(db_task)
+            session.commit()
+
         try:
             # 2. Transition to RUNNING
             task_service.update_task_status(session, task_id, TaskStatus.RUNNING.value)
             
             # 3. Initialize Runtime
             # Note: We need to run async code inside a synchronous Celery worker
-            # We'll use a new event loop for this task
             loop = asyncio.get_event_loop()
             if loop.is_closed():
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
             
-            runtime = AgentRuntime(
-                # Optionally load agent-specific config here in future phases
-            )
+            runtime = AgentRuntime()
             
             # Run the agent
             result = loop.run_until_complete(runtime.run(db_task.input))
@@ -78,7 +89,14 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
             return {"status": "success", "run_id": result.get("run_id")}
 
         except Exception as e:
-            logger.error("Background task execution failed", task_id=task_id, error=str(e))
+            logger.error("Background task execution failed", task_id=task_id, error=str(e), retry=self.request.retries)
+            
+            # If we still have retries left, we don't mark as FAILED yet
+            if self.request.retries < self.max_retries:
+                # We'll let Celery handle the retry, but we can log it
+                raise e
+            
+            # Final failure
             task_service.update_task_status(
                 session, 
                 task_id, 

@@ -42,8 +42,9 @@ def create_task(
     task = service.update_task_status(session, task.id, "queued")
     
     # 3. Trigger background execution via Celery
+    # Use task.id as the Celery ID so we can revoke it easily later
     from agentos.core.orchestrator.tasks import run_agent_task
-    run_agent_task.delay(task.id)
+    run_agent_task.apply_async(args=[task.id], task_id=task.id)
     
     logger.info("Task enqueued for background execution", task_id=task.id)
     return task
@@ -121,3 +122,21 @@ def delete_task(
     deleted = service.delete_task(session, task_id)
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
+
+
+@router.post("/{task_id}/cancel", response_model=TaskResponse)
+def cancel_task(
+    task_id: str,
+    session: Session = Depends(get_session),
+):
+    """
+    Cancel a running or queued task.
+    This will terminate the background worker process if the task is running.
+    """
+    try:
+        task = service.cancel_task(session, task_id)
+        if not task:
+            raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
+        return task
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))

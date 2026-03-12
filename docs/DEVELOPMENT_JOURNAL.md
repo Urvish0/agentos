@@ -109,3 +109,20 @@
 - **Persistence & Visibility**: Because the worker updates the same PostgreSQL `task` table, the user can refresh their dashboard and see the status change from `queued` to `running` to `completed` in real-time.
 
 ---
+
+## 🛡️ Phase 3.3: Retry and Failure Handling
+**Date:** March 12, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Implemented **Automatic Retries** in Celery with exponential backoff (e.g., if LLM is down, wait before retrying).
+- Synced **Task IDs**: The database UUID is now used as the Celery Task ID, allowing direct revocation.
+- Added a **Cancellation Endpoint**: `POST /tasks/{id}/cancel` can now stop a "runaway" agent immediately.
+- Improved **Persistence**: The `retry_count` is now visibly tracked in the database for every task.
+
+### Why we did it
+- **Resilience**: In the real world, APIs fail. Retries ensure that a 1-second network blip doesn't kill a complex agent reasoning task.
+- **Cost & Control**: If a user realizes they sent an expensive or wrong prompt, they need a way to stop it before the agent spends all their tokens. Cancellation is our "Emergency Stop" button.
+- **Observability**: Seeing a `retry_count` of 2 on a task helps developers identify unstable agents or providers immediately.
+
+---

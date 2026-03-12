@@ -110,3 +110,27 @@ def delete_task(session: Session, task_id: str) -> bool:
     session.commit()
     logger.info("Task deleted", task_id=task_id)
     return True
+
+
+def cancel_task(session: Session, task_id: str) -> Task | None:
+    """
+    Cancel a running or queued task.
+    1. Enforces transition to CANCELLED.
+    2. Revokes the task in Celery.
+    """
+    task = session.get(Task, task_id)
+    if not task:
+        return None
+
+    # Enforce state machine via existing update_task_status
+    try:
+        updated_task = update_task_status(session, task_id, TaskStatus.CANCELLED.value)
+    except ValueError as e:
+        raise e
+
+    # Revoke in Celery
+    from agentos.core.orchestrator.celery_app import celery_app
+    celery_app.control.revoke(task_id, terminate=True)
+    
+    logger.info("Task cancelled and revoked in Celery", task_id=task_id)
+    return updated_task
