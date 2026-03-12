@@ -126,3 +126,20 @@
 - **Observability**: Seeing a `retry_count` of 2 on a task helps developers identify unstable agents or providers immediately.
 
 ---
+
+## 🛠️ Phase 4.1: Tool Registry & RAO Cycle
+**Date:** March 12, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Created a **Tool Registry** system that allows us to define functions that agents can call.
+- Implemented a **Reason-Act-Observe (RAO)** loop using LangGraph. Agents can now choose to call a tool, wait for the result, and then continue thinking.
+- Upgraded **AgentState** to use a message reducer (`operator.add`), allowing the agent to remember the entire conversation history, including tool results.
+- Verified the loop with a built-in `get_weather` tool.
+
+### Why we did it
+- **Agency**: Without tools, an agent is just a chatbot. Tools give the agent "hands" to interact with API, databases, and the internet.
+- **Workflow Control**: Using LangGraph allows us to define strict state transitions, making the agent's behavior more predictable and easier to debug than a raw LLM loop.
+- **Context Preservation**: Properly managing message history is critical for complex tasks. If an agent forgets why it called a tool, it gets stuck in a loop.
+
+---

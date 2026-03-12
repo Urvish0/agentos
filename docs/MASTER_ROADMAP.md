@@ -208,19 +208,19 @@ Introduce task scheduling, lifecycle management, and async execution via Celery 
 
 ## 📋 Phase 4 — Tool Integration Layer (MCP)
 
-> **Status**: NOT STARTED | **Depends on**: Phase 2
+> **Status**: IN PROGRESS | **Depends on**: Phase 2
 
 ### Objective
 Enable agents to call external tools via a standardized interface using MCP.
 
 ### Sub-Phases
 
-#### 4.1 Tool Registry
-- [ ] Define tool interface (name, description, parameters, handler)
-- [ ] Implement tool registration and discovery
-- [ ] Create a tool catalog accessible by the runtime
-- [ ] Expand `AgentState` with `chat_history`, `plan`, `tools_called` fields
-- [ ] Implement full `reason → act → observe` cycle as LangGraph nodes
+#### 4.1 Tool Registry ✅
+- [x] Define tool interface (name, description, parameters, handler)
+- [x] Implement tool registration and discovery
+- [x] Create a tool catalog accessible by the runtime
+- [x] Expand `AgentState` with `messages`, `run_id`, `tools_available` fields
+- [x] Implement full `reason → act → observe` cycle as LangGraph nodes
 
 **Key Files**: `backend/src/agentos/core/tools/registry.py`
 

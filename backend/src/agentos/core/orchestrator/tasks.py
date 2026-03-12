@@ -60,13 +60,31 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
             task_service.update_task_status(session, task_id, TaskStatus.RUNNING.value)
             
             # 3. Initialize Runtime
-            # Note: We need to run async code inside a synchronous Celery worker
+            # Fetch agent details to get tools and system prompt
+            from agentos.core.manager import service as agent_service
+            agent = agent_service.get_agent(session, db_task.agent_id)
+            if not agent:
+                raise ValueError(f"Agent {db_task.agent_id} not found")
+
+            # Parse tools if they are a JSON list
+            import json
+            tools_list = []
+            if agent.tools:
+                try:
+                    tools_list = json.loads(agent.tools)
+                except:
+                    logger.warning("Failed to parse agent tools JSON", agent_id=agent.id)
+
             loop = asyncio.get_event_loop()
             if loop.is_closed():
                 loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(loop)
             
-            runtime = AgentRuntime()
+            runtime = AgentRuntime(
+                model=agent.model,
+                system_prompt=agent.system_prompt,
+                tools=tools_list
+            )
             
             # Run the agent
             result = loop.run_until_complete(runtime.run(db_task.input))

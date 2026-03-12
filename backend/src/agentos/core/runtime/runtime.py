@@ -5,17 +5,19 @@ This module implements the core reasoning loop that powers all AgentOS agents.
 It uses LangGraph to define a stateful workflow: reason → respond → END.
 """
 
-from __future__ import annotations
-
 import time
 import uuid
-from typing import Any, TypedDict
+import operator
+from typing import Any, TypedDict, Annotated
 
-from langgraph.graph import StateGraph, END
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage
 import structlog
+from datetime import datetime
+from langgraph.graph import StateGraph, END
+from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
+from langchain_core.utils.function_calling import convert_to_openai_tool
 
 from agentos.core.runtime.llm import get_llm
+from agentos.core.tools.registry import registry as tool_registry
 
 logger = structlog.get_logger()
 
@@ -35,7 +37,11 @@ class AgentState(TypedDict):
 
     # Execution tracking
     reasoning_steps: list[dict[str, Any]]
-    messages: list[Any]
+    messages: Annotated[list[Any], operator.add]
+    
+    # Tool tracking
+    tools_available: list[str]
+    last_tool_call: dict[str, Any] | None
 
     # Output
     output: str
@@ -52,9 +58,8 @@ class AgentState(TypedDict):
 # ---------------------------------------------------------------------------
 
 DEFAULT_SYSTEM_PROMPT = (
-    "You are an AI agent running on AgentOS, an open-source infrastructure "
-    "platform for autonomous AI agents. You are helpful, accurate, and concise. "
-    "Think step by step before answering."
+    "You are an AI agent running on AgentOS. You are helpful, accurate, and concise. "
+    "Think step by step. If a tool is available and relevant, use it."
 )
 
 
@@ -64,11 +69,7 @@ DEFAULT_SYSTEM_PROMPT = (
 
 class AgentRuntime:
     """
-    Core Runtime for executing AgentOS agents using LangGraph.
-
-    Usage:
-        runtime = AgentRuntime(model="llama-3.3-70b-versatile")
-        result = await runtime.run("What is AgentOS?")
+    Core Runtime with Tool Support.
     """
 
     def __init__(
@@ -77,129 +78,139 @@ class AgentRuntime:
         temperature: float = 0.7,
         system_prompt: str | None = None,
         provider: str | None = None,
+        tools: list[str] | None = None,
     ):
         self.model = model
         self.temperature = temperature
         self.system_prompt = system_prompt or DEFAULT_SYSTEM_PROMPT
         self.provider = provider
+        self.tools = tools or []
+        
+        # Get base LLM
         self.llm = get_llm(model=model, temperature=temperature, provider=provider)
+        
+        # Bind tools if provided
+        if self.tools:
+            tool_definitions = []
+            for t_name in self.tools:
+                t_def = tool_registry.get_tool_definition(t_name)
+                if t_def:
+                    # Convert our model to LangChain/OpenAI format
+                    tool_definitions.append({
+                        "type": "function",
+                        "function": {
+                            "name": t_def.name,
+                            "description": t_def.description,
+                            "parameters": t_def.parameters,
+                        }
+                    })
+            
+            if tool_definitions:
+                self.llm = self.llm.bind_tools(tool_definitions)
+        
         self.graph = self._build_graph()
 
-    # ------------------------------------------------------------------
-    # Graph construction
-    # ------------------------------------------------------------------
-
     def _build_graph(self):
-        """Build the LangGraph state machine."""
+        """Build the LangGraph state machine with tool support."""
         workflow = StateGraph(AgentState)
 
         # Add nodes
         workflow.add_node("reason", self._reason_node)
-        workflow.add_node("respond", self._respond_node)
+        workflow.add_node("action", self._action_node)
 
         # Define edges
         workflow.set_entry_point("reason")
-        workflow.add_edge("reason", "respond")
-        workflow.add_edge("respond", END)
+        
+        # Conditional edge: decide whether to act or end
+        workflow.add_conditional_edges(
+            "reason",
+            self._should_continue,
+            {
+                "continue": "action",
+                "end": END
+            }
+        )
+        
+        # Action always goes back to reason
+        workflow.add_edge("action", "reason")
 
         return workflow.compile()
 
-    # ------------------------------------------------------------------
-    # Graph nodes
-    # ------------------------------------------------------------------
+    def _should_continue(self, state: AgentState):
+        """Logic to decide if we should call a tool or finish."""
+        messages = state.get("messages", [])
+        last_message = messages[-1] if messages else None
+        
+        if last_message and hasattr(last_message, "tool_calls") and last_message.tool_calls:
+            return "continue"
+        return "end"
 
     async def _reason_node(self, state: AgentState) -> dict:
-        """
-        Core reasoning node — calls the LLM with the current context.
-        """
+        """Call the LLM and track reasoning."""
         run_id = state["run_id"]
-        logger.info("Reasoning started", run_id=run_id)
-
-        messages = [
-            SystemMessage(content=state["system_prompt"]),
-            HumanMessage(content=state["input"]),
-        ]
+        
+        # Build message history: System prompt + all messages in state
+        messages = [SystemMessage(content=state["system_prompt"])]
+        messages.extend(state.get("messages", []))
 
         try:
             response = await self.llm.ainvoke(messages)
-
-            # Track token usage if available
+            
+            # Update token usage
             tokens = 0
             if hasattr(response, "usage_metadata") and response.usage_metadata:
                 tokens = response.usage_metadata.get("total_tokens", 0)
 
-            reasoning_step = {
-                "step": "reason",
-                "input": state["input"],
-                "output": response.content,
-                "tokens": tokens,
-            }
-
-            logger.info(
-                "Reasoning complete",
-                run_id=run_id,
-                tokens=tokens,
-                output_length=len(response.content),
-            )
-
             return {
-                "messages": [*state.get("messages", []), response],
-                "reasoning_steps": [
-                    *state.get("reasoning_steps", []),
-                    reasoning_step,
-                ],
+                "messages": [response],
                 "total_tokens": state.get("total_tokens", 0) + tokens,
+                "output": response.content if not response.tool_calls else ""
             }
 
         except Exception as e:
             logger.error("Reasoning failed", run_id=run_id, error=str(e))
             return {"error": str(e)}
 
-    async def _respond_node(self, state: AgentState) -> dict:
-        """
-        Formats the final response from the reasoning output.
-        """
-        if state.get("error"):
-            return {"output": f"Error: {state['error']}"}
-
-        messages = state.get("messages", [])
-        if messages:
-            last_message = messages[-1]
-            return {"output": last_message.content}
-
-        return {"output": "No response generated."}
-
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
+    async def _action_node(self, state: AgentState) -> dict:
+        """Execute tool calls requested by the LLM."""
+        last_message = state["messages"][-1]
+        tool_results = []
+        
+        for tool_call in last_message.tool_calls:
+            name = tool_call["name"]
+            args = tool_call["args"]
+            call_id = tool_call["id"]
+            
+            logger.info("Executing tool call", name=name, args=args, run_id=state["run_id"])
+            
+            response = tool_registry.invoke(name, **args)
+            
+            # Format as ToolMessage for LangChain
+            tool_msg = ToolMessage(
+                content=str(response.output) if response.success else f"Error: {response.error}",
+                tool_call_id=call_id
+            )
+            tool_results.append(tool_msg)
+            
+        return {"messages": tool_results}
 
     async def run(
         self,
         input_text: str,
         system_prompt: str | None = None,
     ) -> dict[str, Any]:
-        """
-        Execute the agent reasoning loop.
-
-        Args:
-            input_text: The user's input/goal
-            system_prompt: Optional override for the system prompt
-
-        Returns:
-            dict with keys: run_id, output, reasoning_steps, model,
-                            total_tokens, execution_time_ms, error
-        """
+        """Execute the agent reasoning loop."""
         run_id = str(uuid.uuid4())
         start_time = time.time()
-
-        logger.info("Agent execution started", run_id=run_id, input=input_text)
 
         initial_state: AgentState = {
             "run_id": run_id,
             "input": input_text,
             "system_prompt": system_prompt if system_prompt else self.system_prompt,
             "reasoning_steps": [],
-            "messages": [],
+            "messages": [HumanMessage(content=input_text)],
+            "tools_available": self.tools,
+            "last_tool_call": None,
             "output": "",
             "error": None,
             "model": self.model or "default",
@@ -208,71 +219,21 @@ class AgentRuntime:
         }
 
         # Execute the graph
+        # Note: In LangGraph 0.2+, state updates are additive for lists
         result = await self.graph.ainvoke(initial_state)
 
         execution_time_ms = (time.time() - start_time) * 1000
 
-        logger.info(
-            "Agent execution complete",
-            run_id=run_id,
-            execution_time_ms=round(execution_time_ms, 2),
-            total_tokens=result.get("total_tokens", 0),
-        )
-
         return {
             "run_id": run_id,
             "output": result.get("output", ""),
-            "reasoning_steps": result.get("reasoning_steps", []),
-            "model": result.get("model", ""),
+            "messages_count": len(result.get("messages", [])),
+            "model": self.model or "default",
             "total_tokens": result.get("total_tokens", 0),
             "execution_time_ms": round(execution_time_ms, 2),
             "error": result.get("error"),
         }
 
-    async def run_stream(
-        self,
-        input_text: str,
-        system_prompt: str | None = None,
-    ):
-        """
-        Stream the agent's response token by token.
-
-        Yields dicts with keys: type ("token" | "done"), content, run_id
-        """
-        from langchain_core.messages import HumanMessage, SystemMessage
-
-        run_id = str(uuid.uuid4())
-        prompt = system_prompt if system_prompt else self.system_prompt
-
-        logger.info("Agent stream started", run_id=run_id, input=input_text)
-
-        messages = [
-            SystemMessage(content=prompt),
-            HumanMessage(content=input_text),
-        ]
-
-        full_content = ""
-        try:
-            async for chunk in self.llm.astream(messages):
-                token = chunk.content
-                if token:
-                    full_content += token
-                    yield {
-                        "type": "token",
-                        "content": token,
-                        "run_id": run_id,
-                    }
-
-            yield {
-                "type": "done",
-                "content": full_content,
-                "run_id": run_id,
-            }
-
-        except Exception as e:
-            logger.error("Stream failed", run_id=run_id, error=str(e))
-            yield {
-                "type": "error",
-                "content": str(e),
-                "run_id": run_id,
-            }
+    async def run_stream(self, *args, **kwargs):
+        """Streaming is temporarily disabled during tool refactor."""
+        yield {"type": "error", "content": "Streaming not yet supported for tool-calling agents."}
