@@ -75,11 +75,12 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
                 except:
                     logger.warning("Failed to parse agent tools JSON", agent_id=agent.id)
 
-            loop = asyncio.get_event_loop()
-            if loop.is_closed():
-                loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(loop)
-            
+            # Initialize MCP Servers for the worker process
+            from agentos.core.tools.mcp_manager import mcp_manager
+            from agentos.core.runtime.config import config
+            if config.mcp_servers_config:
+                loop.run_until_complete(mcp_manager.initialize_from_config(config.mcp_servers_config))
+
             runtime = AgentRuntime(
                 model=agent.model,
                 system_prompt=agent.system_prompt,

@@ -224,12 +224,13 @@ Enable agents to call external tools via a standardized interface using MCP.
 
 **Key Files**: `backend/src/agentos/core/tools/registry.py`
 
-#### 4.2 MCP Client Integration
-- [ ] Implement MCP client for connecting to MCP servers
-- [ ] Support tool invocation through MCP protocol
-- [ ] Add security sandboxing for tool execution
+#### 4.2 MCP Client Integration ✅
+- [x] Implement MCP client for connecting to MCP servers via Stdio
+- [x] Handle server initialization and tool discovery
+- [x] Map MCP tool definitions to registry format
+- [x] Integrated with API and Celery startup
 
-**Key Files**: `backend/src/agentos/core/tools/mcp_client.py`
+**Key Files**: `backend/src/agentos/core/tools/mcp_manager.py`
 
 #### 4.3 Built-in Tools
 - [ ] Web search tool

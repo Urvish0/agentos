@@ -143,3 +143,21 @@
 - **Context Preservation**: Properly managing message history is critical for complex tasks. If an agent forgets why it called a tool, it gets stuck in a loop.
 
 ---
+
+## 🌐 Phase 4.2: MCP Client Integration
+**Date:** March 12, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Implemented **MCPManager**, a dedicated service to manage connections to external **Model Context Protocol** servers.
+- Built a bridge that automatically discovers tools from MCP servers and registers them in our global `ToolRegistry`.
+- Updated **AgentRuntime** to support asynchronous tool execution, which is required for MCP communication.
+- Wired MCP initialization into both the **FastAPI API** and **Celery Workers**, ensuring agents have access to tools across the entire platform.
+- Verified the integration using a custom local MCP server (`test_mcp_server.py`).
+
+### Why we did it
+- **Ecosystem Access**: MCP is becoming the industry standard for LLM tools. By supporting it, AgentOS can immediately use hundreds of existing tools (Postgres, Slack, GitHub, etc.) without writing custom code for each.
+- **Process Isolation**: MCP servers run as separate processes (Stdio), which is more secure and stable than loading arbitrary code directly into the backend.
+- **Scalability**: Supporting async tool calls ensures that the backend can handle many concurrent agent runs without blocking on slow external API responses.
+
+---

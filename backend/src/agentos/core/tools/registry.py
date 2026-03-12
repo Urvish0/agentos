@@ -37,7 +37,8 @@ class ToolRegistry:
     def list_tools(self) -> List[ToolDefinition]:
         return list(self._tools.values())
 
-    def invoke(self, name: str, **kwargs) -> ToolInvokeResponse:
+    async def invoke(self, name: str, **kwargs) -> ToolInvokeResponse:
+        """Invoke a tool (sync or async) by name with arguments."""
         handler = self._handlers.get(name)
         if not handler:
             return ToolInvokeResponse(
@@ -49,7 +50,14 @@ class ToolRegistry:
 
         try:
             logger.info("Invoking tool", name=name, args=kwargs)
-            result = handler(**kwargs)
+            
+            # Check if it's a coroutine or just a function
+            import inspect
+            if inspect.iscoroutinefunction(handler):
+                result = await handler(**kwargs)
+            else:
+                result = handler(**kwargs)
+                
             return ToolInvokeResponse(
                 tool_name=name,
                 output=result,

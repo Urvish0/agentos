@@ -183,7 +183,7 @@ class AgentRuntime:
             
             logger.info("Executing tool call", name=name, args=args, run_id=state["run_id"])
             
-            response = tool_registry.invoke(name, **args)
+            response = await tool_registry.invoke(name, **args)
             
             # Format as ToolMessage for LangChain
             tool_msg = ToolMessage(

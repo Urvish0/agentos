@@ -78,6 +78,12 @@ class RuntimeConfig(BaseSettings):
         description="Max retries on transient LLM failures",
     )
 
+    # --- MCP ---
+    mcp_servers_config: str = Field(
+        default="{}",
+        description="JSON configuration for MCP servers to connect on startup",
+    )
+
     model_config = {
         "env_file": ".env",
         "env_file_encoding": "utf-8",

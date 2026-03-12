@@ -60,11 +60,16 @@ def create_app() -> FastAPI:
     # Database initialization on startup
     # ------------------------------------------------------------------
     @app.on_event("startup")
-    def on_startup():
+    async def on_startup():
         from agentos.core.manager.database import create_db_and_tables
         # Import models so SQLModel.metadata knows about all tables
         from agentos.core.orchestrator.models import Task  # noqa: F401
         create_db_and_tables()
+
+        # Initialize MCP Servers
+        from agentos.core.tools.mcp_manager import mcp_manager
+        if config.mcp_servers_config:
+            await mcp_manager.initialize_from_config(config.mcp_servers_config)
 
     # ------------------------------------------------------------------
     # Include routers
