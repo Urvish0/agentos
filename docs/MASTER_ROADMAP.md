@@ -21,7 +21,7 @@
 | **Repo Architecture** | `docs/architecture/REPO_ARCHITECTURE.md` | Directory structure and package layout |
 | **MVP Definition** | `docs/architecture/MVP_DEFINITION.md` | Scope of v0.1 — what's in and what's out |
 | **Implementation Plan** | `docs/architecture/IMPLEMENTATION_PLAN.md` | Phased engineering blueprint |
-| **Development Roadmap** | `docs/architecture/DEVELOPMENT_ROADMAP.md` | Step-by-step development phases |
+| **Dev Roadmap** | `docs/architecture/DEVELOPMENT_ROADMAP.md` | Step-by-step development phases |
 
 ### Project Tech Stack
 
@@ -301,7 +301,8 @@ Give agents short-term working memory and long-term vector-based knowledge retri
 ---
 
 ## 📋 Phase 6 — Observability System
-- [/] **Phase 6.1**: Structured Logging (JSON)
+- [x] **Phase 6.1**: Structured Logging (JSON)
+- [x] **Phase 6.2**: Metrics Collection (Prometheus)
 
 > **Status**: IN PROGRESS | **Depends on**: Phase 2
 
@@ -318,11 +319,11 @@ Provide full transparency into agent behavior via structured logging, traces, an
 
 **Key Files**: `backend/src/agentos/services/observability/logging.py`, `backend/src/agentos/api/app.py`
 
-#### 6.2 Metrics Collection (Prometheus)
-- [ ] Install and configure `prometheus-client`
-- [ ] Track: token usage (counter), execution time (histogram), task success/failure (counter), cost estimation
-- [ ] Expose metrics via a `/metrics` API endpoint (Prometheus format)
-- [ ] Integrate with `AgentRuntime` to record metrics on every run
+#### 6.2 Metrics Collection (Prometheus) ✅
+- [x] Install and configure `prometheus-client`
+- [x] Track: token usage (counter), execution time (histogram), task success/failure (counter), cost estimation
+- [x] Expose metrics via a `/metrics` API endpoint (Prometheus format)
+- [x] Integrate with `AgentRuntime` to record metrics on every run
 
 **Key Files**: `backend/src/agentos/services/observability/metrics.py`, `backend/src/agentos/api/app.py`
 

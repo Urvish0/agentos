@@ -10,6 +10,7 @@ from fastapi import Request
 
 from agentos.core.runtime.config import config
 from agentos.services.observability.logging import setup_logging
+from agentos.services.observability.metrics import REGISTRY
 
 # Initialize logging as early as possible
 setup_logging(json_format=not config.debug)
@@ -123,8 +124,21 @@ def create_app() -> FastAPI:
     app.include_router(memory_router)
 
     # ------------------------------------------------------------------
-    # Health & Info
+    # Health, Info & Metrics
     # ------------------------------------------------------------------
+
+    @app.get("/metrics")
+    async def metrics():
+        """
+        Expose Prometheus metrics for scraping.
+        """
+        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+        from fastapi.responses import Response
+
+        return Response(
+            generate_latest(REGISTRY),
+            media_type=CONTENT_TYPE_LATEST
+        )
 
     @app.get("/health")
     async def health_check():

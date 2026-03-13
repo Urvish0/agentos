@@ -2,6 +2,7 @@
 
 > **Note to self and fellow learners**: This document tracks the evolution of AgentOS. For every phase, we explain **what** we built and **why** we chose that specific path. 
 
+
 ---
 
 ## 🏗️ Phase 1: Project Initialization
@@ -232,3 +233,20 @@
 - **Efficiency**: Context injection happens before the LLM call, saving the cost and latency of a separate "tool calling" turn just to fetch knowledge.
 
 ---
+
+## 📊 Phase 6.2: Metrics Collection (Prometheus)
+**Date:** March 13, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Integrated **Prometheus** for real-time metrics collection using the `prometheus-client` library.
+- Defined custom metrics: `agentos_tokens_total` (Counter), `agentos_execution_time_seconds` (Histogram), `agentos_tasks_total` (Counter), and `agentos_cost_usd_total` (Counter).
+- Exposed a dedicated `/metrics` endpoint in the FastAPI application for scraping by Prometheus.
+- Integrated metrics recording directly into the `AgentRuntime.run()` method to capture data for every agent execution.
+- Implemented a basic **Cost Estimation** engine that maps token usage to USD based on provider and model.
+
+### Why we did it
+- **Observability**: Logging tells you *what* happened; metrics tell you *how* it's performing over time. This is critical for identifying bottlenecks (e.g., slow LLM responses) or usage spikes.
+- **Cost Control**: AI tokens are expensive. By tracking cost in real-time, we provide immediate visibility into spending, which is a prerequisite for the budget gating we plan for Phase 13.
+- **Standardization**: Prometheus is the industry standard for cloud-native monitoring. By exposing metrics in this format, AgentOS can be easily plugged into existing Grafana dashboards.
+- **Performance Tuning**: The execution time histogram allows us to see the distribution of response times, helping us decide when to switch models or providers for better latency.

@@ -18,6 +18,7 @@ from langchain_core.utils.function_calling import convert_to_openai_tool
 
 from agentos.core.runtime.llm import get_llm
 from agentos.core.tools.registry import registry as tool_registry
+from agentos.services.observability.metrics import record_run_metrics
 
 logger = structlog.get_logger()
 
@@ -279,6 +280,16 @@ class AgentRuntime:
             memory.add_messages(self.thread_id, new_msgs)
 
         execution_time_ms = (time.time() - start_time) * 1000
+
+        # 4. Record metrics
+        record_run_metrics(
+            agent_id="default", # Placeholder for now, could be passed in
+            model=self.model or "default",
+            provider=self.provider or "unknown",
+            total_tokens=result.get("total_tokens", 0),
+            execution_time_ms=execution_time_ms,
+            status="success" if not result.get("error") else "failure"
+        )
 
         return {
             "run_id": run_id,
