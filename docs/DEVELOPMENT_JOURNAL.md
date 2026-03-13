@@ -180,3 +180,21 @@
 - **Strategic Foundation**: The Python Executor is the first step toward the "Master Agent" concept—allowing agents to write and test their own logic dynamically.
 
 ---
+
+## 🧠 Phase 5.1: Short-term Memory & Caching
+**Date:** March 13, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Implemented **RedisMemory** to persist agent conversations across turns using a `thread_id`.
+- Implemented **RedisCache** for LLM response caching, significantlly reducing latency and token costs for repeated prompts.
+- Added **Idempotency** logic to ensure that duplicate requests or retries don't trigger redundant agent runs.
+- Updated **AgentRuntime** to automatically load history at start and save turn results at completion.
+- Exposed `thread_id` in the API for client-side session management.
+
+### Why we did it
+- **Continuity**: Agents need context to be truly useful. Without short-term memory, every message is a fresh start, making long workflows impossible.
+- **Production Efficiency**: LLM Caching is a standard production practice. It makes the system feel much faster for common queries and saves money.
+- **Reliability (Kubernetes Vision)**: Idempotency is a core principle of reliable distributed systems. As we build "Kubernetes for Agents," we must ensure that our execution logic is deterministic and safe to retry.
+
+---

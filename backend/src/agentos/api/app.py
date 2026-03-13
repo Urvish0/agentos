@@ -21,6 +21,7 @@ class AgentRunRequest(BaseModel):
     system_prompt: str | None = Field(None, description="Override the system prompt")
     provider: str | None = Field(None, description="LLM provider: groq, openai, anthropic")
     tools: list[str] | None = Field(default=None, description="List of tools to enable for this run")
+    thread_id: str | None = Field(None, description="Conversation thread ID for short-term memory")
 
 
 class AgentRunResponse(BaseModel):
@@ -123,6 +124,7 @@ def create_app() -> FastAPI:
                 system_prompt=request.system_prompt,
                 provider=request.provider,
                 tools=request.tools,
+                thread_id=request.thread_id,
             )
             result = await runtime.run(
                 input_text=request.input,
@@ -161,6 +163,7 @@ def create_app() -> FastAPI:
             system_prompt=request.system_prompt,
             provider=request.provider,
             tools=request.tools,
+            thread_id=request.thread_id,
         )
 
         async def event_stream():

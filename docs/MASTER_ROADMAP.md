@@ -255,10 +255,12 @@ Give agents short-term working memory and long-term vector-based knowledge retri
 
 ### Sub-Phases
 
-#### 5.1 Short-Term Memory (Redis)
-- [ ] Implement session-scoped memory store using Redis
-- [ ] Support read/write of conversation context
-- [ ] Auto-expire stale sessions
+#### 5.1 Short-Term Memory (Redis) ✅
+- [x] Implement session-scoped memory store using Redis (threads)
+- [x] Support read/write of conversation context
+- [x] Implement LLM caching to reduce costs and latency
+- [x] Add idempotency checks for reliable task execution
+- [x] Auto-expire stale sessions
 
 **Key Files**: `backend/src/agentos/core/memory/short_term.py`
 

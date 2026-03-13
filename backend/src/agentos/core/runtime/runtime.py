@@ -39,6 +39,9 @@ class AgentState(TypedDict):
     reasoning_steps: list[dict[str, Any]]
     messages: Annotated[list[Any], operator.add]
     
+    # Thread tracking
+    thread_id: str | None
+ 
     # Tool tracking
     tools_available: list[str]
     last_tool_call: dict[str, Any] | None
@@ -79,12 +82,14 @@ class AgentRuntime:
         system_prompt: str | None = None,
         provider: str | None = None,
         tools: list[str] | None = None,
+        thread_id: str | None = None,
     ):
         self.model = model
         self.temperature = temperature
         self.system_prompt = system_prompt or DEFAULT_SYSTEM_PROMPT
         self.provider = provider
         self.tools = tools or []
+        self.thread_id = thread_id
         
         # Get base LLM
         self.llm = get_llm(model=model, temperature=temperature, provider=provider)
@@ -194,21 +199,31 @@ class AgentRuntime:
             
         return {"messages": tool_results}
 
-    async def run(
-        self,
-        input_text: str,
-        system_prompt: str | None = None,
-    ) -> dict[str, Any]:
-        """Execute the agent reasoning loop."""
-        run_id = str(uuid.uuid4())
+    async def run(self, input_text: str, system_prompt: str | None = None) -> dict[str, Any]:
+        """Execute the agent workflow for a given input."""
         start_time = time.time()
+        run_id = str(uuid.uuid4())
+        
+        # 1. Load history if thread_id is present
+        initial_messages = []
+        if self.thread_id:
+            from agentos.core.memory.short_term import memory
+            history = memory.get_history(self.thread_id)
+            for msg in history:
+                if msg["role"] == "user":
+                    initial_messages.append(HumanMessage(content=msg["content"]))
+                elif msg["role"] == "assistant":
+                    initial_messages.append(AIMessage(content=msg["content"]))
+
+        # 2. Add current input
+        initial_messages.append(HumanMessage(content=input_text))
 
         initial_state: AgentState = {
             "run_id": run_id,
             "input": input_text,
-            "system_prompt": system_prompt if system_prompt else self.system_prompt,
+            "system_prompt": system_prompt or self.system_prompt,
             "reasoning_steps": [],
-            "messages": [HumanMessage(content=input_text)],
+            "messages": initial_messages,
             "tools_available": self.tools,
             "last_tool_call": None,
             "output": "",
@@ -216,11 +231,21 @@ class AgentRuntime:
             "model": self.model or "default",
             "total_tokens": 0,
             "execution_time_ms": 0.0,
+            "thread_id": self.thread_id
         }
 
         # Execute the graph
-        # Note: In LangGraph 0.2+, state updates are additive for lists
         result = await self.graph.ainvoke(initial_state)
+        
+        # 3. Save new messages to history
+        if self.thread_id:
+            from agentos.core.memory.short_term import memory
+            # We only save the NEW messages (input + final output)
+            new_msgs = [
+                {"role": "user", "content": input_text},
+                {"role": "assistant", "content": result["output"]}
+            ]
+            memory.add_messages(self.thread_id, new_msgs)
 
         execution_time_ms = (time.time() - start_time) * 1000
 
@@ -232,6 +257,7 @@ class AgentRuntime:
             "total_tokens": result.get("total_tokens", 0),
             "execution_time_ms": round(execution_time_ms, 2),
             "error": result.get("error"),
+            "thread_id": self.thread_id
         }
 
     async def run_stream(self, *args, **kwargs):
