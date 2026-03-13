@@ -160,6 +160,8 @@ class AgentRuntime:
         messages = [SystemMessage(content=state["system_prompt"])]
         messages.extend(state.get("messages", []))
 
+        logger.info("Reasoning step started", messages_count=len(messages))
+
         try:
             response = await self.llm.ainvoke(messages)
             
@@ -171,11 +173,12 @@ class AgentRuntime:
             return {
                 "messages": [response],
                 "total_tokens": state.get("total_tokens", 0) + tokens,
-                "output": response.content if not response.tool_calls else ""
+                "output": response.content if not response.tool_calls else "",
+                "tool_calls_count": len(response.tool_calls) if hasattr(response, "tool_calls") else 0
             }
 
         except Exception as e:
-            logger.error("Reasoning failed", run_id=run_id, error=str(e))
+            logger.error("Reasoning failed", run_id=run_id, error=str(e), exc_info=True)
             return {"error": str(e)}
 
     async def _action_node(self, state: AgentState) -> dict:
@@ -201,10 +204,10 @@ class AgentRuntime:
             
         return {"messages": tool_results}
 
-    async def run(self, input_text: str, system_prompt: str | None = None) -> dict[str, Any]:
+    async def run(self, input_text: str, system_prompt: str | None = None, run_id: str | None = None) -> dict[str, Any]:
         """Execute the agent workflow for a given input."""
         start_time = time.time()
-        run_id = str(uuid.uuid4())
+        run_id = run_id or str(uuid.uuid4())
         
         # 1. Load history if thread_id is present
         initial_messages = []
@@ -235,6 +238,13 @@ class AgentRuntime:
                 current_system_prompt += context_str
                 logger.info("Auto-RAG context injected", results_count=len(results))
 
+        # 3. Bind context for logging
+        structlog.contextvars.bind_contextvars(
+            run_id=run_id,
+            thread_id=self.thread_id,
+            model=self.model or "default"
+        )
+
         initial_state: AgentState = {
             "run_id": run_id,
             "input": input_text,
@@ -252,7 +262,11 @@ class AgentRuntime:
         }
 
         # Execute the graph
-        result = await self.graph.ainvoke(initial_state)
+        try:
+            result = await self.graph.ainvoke(initial_state)
+        finally:
+            # Clear context after run
+            structlog.contextvars.clear_contextvars()
         
         # 3. Save new messages to history
         if self.thread_id:

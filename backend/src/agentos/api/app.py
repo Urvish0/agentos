@@ -4,10 +4,17 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 import structlog
 import json
+import uuid
+import time
+from fastapi import Request
 
 from agentos.core.runtime.config import config
+from agentos.services.observability.logging import setup_logging
 
+# Initialize logging as early as possible
+setup_logging(json_format=not config.debug)
 logger = structlog.get_logger()
+base_logger = logger # Store base logger for middleware
 
 
 # ---------------------------------------------------------------------------
@@ -58,6 +65,37 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # ------------------------------------------------------------------
+    # Logging Middleware
+    # ------------------------------------------------------------------
+    @app.middleware("http")
+    async def logging_middleware(request: Request, call_next):
+        request_id = str(uuid.uuid4())
+        structlog.contextvars.bind_contextvars(request_id=request_id)
+        
+        start_time = time.time()
+        
+        logger.info(
+            "Request started",
+            method=request.method,
+            path=request.url.path,
+            client_host=request.client.host if request.client else None,
+        )
+
+        response = await call_next(request)
+        
+        process_time_ms = (time.time() - start_time) * 1000
+        
+        logger.info(
+            "Request finished",
+            method=request.method,
+            path=request.url.path,
+            status_code=response.status_code,
+            duration_ms=round(process_time_ms, 2),
+        )
+        
+        return response
 
     # ------------------------------------------------------------------
     # Database initialization on startup

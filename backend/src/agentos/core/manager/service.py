@@ -16,7 +16,21 @@ logger = structlog.get_logger()
 
 
 def create_agent(session: Session, agent_data: AgentCreate) -> Agent:
-    """Register a new agent in the database."""
+    """Register a new agent in the database. Updates if ID already exists."""
+    if agent_data.id:
+        existing = session.get(Agent, agent_data.id)
+        if existing:
+            # Update existing instead of failing
+            update_fields = agent_data.model_dump(exclude_unset=True)
+            for field, value in update_fields.items():
+                setattr(existing, field, value)
+            existing.updated_at = datetime.now(timezone.utc).isoformat()
+            session.add(existing)
+            session.commit()
+            session.refresh(existing)
+            logger.info("Agent updated via register", agent_id=existing.id)
+            return existing
+
     agent = Agent(**agent_data.model_dump())
     session.add(agent)
     session.commit()

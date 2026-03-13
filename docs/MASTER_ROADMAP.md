@@ -79,6 +79,9 @@ agentos/
 - [x] **Phase 3.1** — Task Lifecycle Model (COMPLETED)
 - [x] **Phase 3.2** — Task Queue Integration (COMPLETED)
 - [x] **Phase 3.3** — Retry and Failure Handling (COMPLETED)
+- [x] **Phase 4** — Tool Integration Layer (MCP) (COMPLETED)
+- [x] **Phase 5** — Memory Infrastructure (COMPLETED)
+- [/] **Phase 6** — Observability System (IN PROGRESS)
 
 ---
 
@@ -240,15 +243,26 @@ Enable agents to call external tools via a standardized interface using MCP.
 
 **Key Files**: `backend/src/agentos/core/tools/builtins/`
 
+#### 4.4 Agent-to-Agent (A2A) Protocol ✅
+- [x] Design and implement internal A2A communication spec (`delegate_task`)
+- [x] Enable agents to "hand off" or delegate sub-tasks to other registered agents
+- [x] Maintain conversation context and hierarchy across multi-agent handoffs
+- [x] Implement agent discovery tool (`list_agents`)
+
+**Key Files**: `backend/src/agentos/core/tools/a2a.py`
+
 ### Deliverables
 - Agents can discover and invoke registered tools during execution
 - At least 2-3 built-in tools working
 
 ---
 
-## 📋 Phase 5 — Memory Infrastructure
+## 📋 Phase 5 — Memory Infrastructure ✅
+- [x] **5.1 Short-Term Memory (Redis)**: Chat context persistence & caching.
+- [x] **5.2 Long-Term Memory (Qdrant)**: Vector storage & semantic retrieval.
+- [x] **5.3 Memory API & Auto-RAG**: REST endpoints & auto-context injection.
 
-> **Status**: NOT STARTED | **Depends on**: Phase 2
+> **Status**: COMPLETED | **Depends on**: Phase 2
 
 ### Objective
 Give agents short-term working memory and long-term vector-based knowledge retrieval.
@@ -287,33 +301,45 @@ Give agents short-term working memory and long-term vector-based knowledge retri
 ---
 
 ## 📋 Phase 6 — Observability System
+- [/] **Phase 6.1**: Structured Logging (JSON)
 
-> **Status**: NOT STARTED | **Depends on**: Phase 2
+> **Status**: IN PROGRESS | **Depends on**: Phase 2
 
 ### Objective
 Provide full transparency into agent behavior via structured logging, traces, and metrics.
 
 ### Sub-Phases
 
-#### 6.1 Structured Logging
-- [ ] Configure `structlog` for JSON-formatted logs
-- [ ] Log every reasoning step: input, LLM call, tool call, output
-- [ ] Add correlation IDs (task_id, agent_id) to all log entries
+#### 6.1 Structured Logging ✅
+- [x] Configure `structlog` for JSON-formatted logs
+- [x] Log every reasoning step: input, LLM call, tool call, output
+- [x] Add correlation IDs (task_id, agent_id, run_id) to all log entries
+- [x] Implement request/response logging middleware for API
 
-**Key Files**: `backend/src/agentos/services/observability/logging.py`
+**Key Files**: `backend/src/agentos/services/observability/logging.py`, `backend/src/agentos/api/app.py`
 
-#### 6.2 Metrics Collection
-- [ ] Track: token usage, execution time, task success/failure rate, cost estimation
-- [ ] Expose metrics via a `/metrics` endpoint (Prometheus format)
+#### 6.2 Metrics Collection (Prometheus)
+- [ ] Install and configure `prometheus-client`
+- [ ] Track: token usage (counter), execution time (histogram), task success/failure (counter), cost estimation
+- [ ] Expose metrics via a `/metrics` API endpoint (Prometheus format)
+- [ ] Integrate with `AgentRuntime` to record metrics on every run
 
-**Key Files**: `backend/src/agentos/services/observability/metrics.py`
+**Key Files**: `backend/src/agentos/services/observability/metrics.py`, `backend/src/agentos/api/app.py`
 
-#### 6.3 Reasoning Traces
+#### 6.3 Reasoning Traces & OpenTelemetry
+- [ ] Instrument code with OpenTelemetry for distributed tracing
 - [ ] Capture full reasoning trace (Thought → Action → Observation) per task
-- [ ] Store traces in database for later inspection
+- [ ] Store traces in database or dedicated trace store (Jaegar/Tempo/Langfuse)
 - [ ] Expose via API: `GET /tasks/{task_id}/trace`
 
 **Key Files**: `backend/src/agentos/services/observability/traces.py`
+
+#### 6.4 Immutable Audit Logging (Compliance)
+- [ ] Implement append-only audit log for sensitive actions (e.g. file writes, API calls)
+- [ ] Store audit logs in a tamper-evident/read-only storage layer
+- [ ] Include user/agent attribution and timestamps for every entry
+
+**Key Files**: `backend/src/agentos/services/observability/audit.py`
 
 ### Deliverables
 - Every agent decision is logged and queryable
@@ -429,10 +455,12 @@ Build a web dashboard for monitoring and managing agents visually.
 - [ ] Task success/failure rate graphs
 - [ ] System health indicators
 
-**Key Files**: `dashboard/`
+#### 10.4 Visual Workflow Designer (Drag-and-Drop)
+- [ ] Implement interactive canvas for multi-agent composition
+- [ ] Drag-and-drop agent/tool blocks to define pipelines
+- [ ] Generate YAML/JSON workflow definitions from visual graph
 
-### Deliverables
-- A working web UI for monitoring agents and tasks
+**Key Files**: `dashboard/components/designer/`
 
 ---
 
@@ -451,15 +479,68 @@ Build a web dashboard for monitoring and managing agents visually.
 ---
 
 ## 📋 Phase 12 — Open Source Release Preparation
+- [ ] **Phase 12.1**: Final Quality Audit & Bug Squashing
+- [ ] **Phase 12.2**: CI/CD Pipelines (GitHub Actions)
+- [ ] **Phase 12.3**: Packaging & PyPI Release
 
-> **Status**: NOT STARTED | **Depends on**: All phases
+> **Status**: NOT STARTED | **Depends on**: All previous phases
 
-### Sub-Phases
+#### 12.1 Final Quality Audit
 - [ ] Finalize README with badges, screenshots, and quickstart
-- [ ] Set up GitHub Actions CI/CD (lint, test, build)
-- [ ] Prepare Docker images for distribution
-- [ ] Create GitHub Release v0.1.0
-- [ ] Publish to PyPI as `agentos`
+- [ ] Perform security scan of Docker images and dependencies
+- [ ] Optimize response times for all API endpoints
+
+#### 12.2 CI/CD Pipelines
+- [ ] Set up GitHub Actions for linting (Ruff), testing (Pytest), and building
+- [ ] Automate Docker image builds on release tags
+- [ ] Implement automated documentation generation
+
+#### 12.3 Packaging & Release
+- [ ] Prepare `pyproject.toml` for PyPI publishing (package as `agentos`)
+- [ ] Create GitHub Release v0.1.0 with changelog
+- [ ] Publish Docker images to Docker Hub
+
+---
+
+## 📋 Phase 13 — Governance & Human-in-the-loop (HITL)
+- [ ] **Phase 13.1**: Intent Gating & Policy Engine (Guardrails)
+- [ ] **Phase 13.2**: HITL Checkpoints (Pause/Resume with Approval)
+- [ ] **Phase 13.3**: Budget Gating & Rate Limiting
+
+> **Status**: NOT STARTED | **Depends on**: Phases 3, 6
+
+### Objective
+Ensure agents operate safely within enterprise guardrails and support human oversight.
+
+#### 13.1 Governance & Policy Engine
+- [ ] Define policy language for tool/data access (e.g. "Agent X cannot call tool Y")
+- [ ] Implement mid-run "intent gating" (check action against policy before execution)
+- [ ] Add support for PII redaction and sensitive data filtering
+
+#### 13.2 HITL Checkpoints
+- [ ] Enable `agent.pause()` capability with state persistence
+- [ ] Implement approval gating for high-impact tools (e.g. "Ask human before sending $1000")
+- [ ] API for human review: `POST /tasks/{id}/approve` or `POST /tasks/{id}/modify`
+
+#### 13.3 Budget Gating
+- [ ] Real-time cost calculation per task
+- [ ] Automatic task kill/pause if budget exceeds threshold
+- [ ] Set global/per-agent spending limits
+
+---
+
+## 📋 Phase 14 — Deployment/Cloud-Native (v1.0)
+- [ ] **Phase 14.1**: Production Containerization (Multi-stage Docker)
+- [ ] **Phase 14.2**: Kubernetes Helm Charts & Resource Limits
+- [ ] **Phase 14.3**: Database Migrations & High Availability (HA)
+
+---
+
+## 📋 Future Roadmap (Beyond MVP)
+- [ ] **Multi-Tenancy**: Isolated namespaces/spaces for teams/orgs
+- [ ] **Agent Marketplace**: Community index and one-click installs
+- [ ] **A2A (External)**: Cross-platform agent communication protocol
+- [ ] **LangSmith/Langfuse Cloud Integration**
 
 ---
 

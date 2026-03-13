@@ -72,6 +72,9 @@ def update_task_status(
     current = TaskStatus(task.status)
     target = TaskStatus(new_status)
 
+    if current == target:
+        return task
+
     if not validate_transition(current, target):
         raise ValueError(
             f"Invalid transition: '{current.value}' → '{target.value}'. "

@@ -78,6 +78,9 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
             # Initialize MCP Servers for the worker process
             from agentos.core.tools.mcp_manager import mcp_manager
             from agentos.core.runtime.config import config
+            
+            loop = asyncio.get_event_loop()
+            
             if config.mcp_servers_config:
                 loop.run_until_complete(mcp_manager.initialize_from_config(config.mcp_servers_config))
 
@@ -88,7 +91,7 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
             )
             
             # Run the agent
-            result = loop.run_until_complete(runtime.run(db_task.input))
+            result = loop.run_until_complete(runtime.run(db_task.input, run_id=task_id))
             
             # 4. Success Completion
             task_service.update_task_status(

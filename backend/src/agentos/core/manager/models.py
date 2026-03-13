@@ -77,6 +77,7 @@ class Agent(SQLModel, table=True):
 
 class AgentCreate(SQLModel):
     """Schema for creating a new agent (request body)."""
+    id: str | None = None
     name: str
     description: str = ""
     version: str = "0.1.0"

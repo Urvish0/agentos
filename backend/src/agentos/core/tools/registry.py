@@ -1,6 +1,3 @@
-"""
-Tool Registry for AgentOS.
-"""
 
 from typing import Any, Callable, Dict, List, Optional, Type
 import structlog
@@ -97,6 +94,11 @@ class ToolRegistry:
         from agentos.core.tools.builtins.memory import save_to_knowledge_base, query_knowledge_base, SaveToKnowledgeBaseArgs, QueryKnowledgeBaseArgs
         self.register_tool("save_to_knowledge_base", "Permanently store information in long-term memory", save_to_knowledge_base, SaveToKnowledgeBaseArgs)
         self.register_tool("query_knowledge_base", "Search for information in long-term knowledge base", query_knowledge_base, QueryKnowledgeBaseArgs)
+
+        # Agent-to-Agent (A2A)
+        from agentos.core.tools.builtins.a2a import delegate_task, list_agents, DelegateTaskArgs, ListAgentsArgs
+        self.register_tool("delegate_task", "Delegate a sub-goal to another specialized agent", delegate_task, DelegateTaskArgs)
+        self.register_tool("list_agents", "List all available agents discovered in the registry", list_agents, ListAgentsArgs)
 
 registry = ToolRegistry()
 registry.register_builtin_tools()

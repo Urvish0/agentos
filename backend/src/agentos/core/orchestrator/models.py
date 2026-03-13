@@ -37,7 +37,7 @@ class TaskStatus(str, Enum):
 
 # Valid state transitions: current_state → [allowed_next_states]
 VALID_TRANSITIONS: dict[TaskStatus, list[TaskStatus]] = {
-    TaskStatus.CREATED:   [TaskStatus.QUEUED, TaskStatus.CANCELLED],
+    TaskStatus.CREATED:   [TaskStatus.QUEUED, TaskStatus.RUNNING, TaskStatus.CANCELLED],
     TaskStatus.QUEUED:    [TaskStatus.RUNNING, TaskStatus.CANCELLED],
     TaskStatus.RUNNING:   [TaskStatus.COMPLETED, TaskStatus.FAILED, TaskStatus.PAUSED, TaskStatus.CANCELLED],
     TaskStatus.PAUSED:    [TaskStatus.RUNNING, TaskStatus.CANCELLED],
@@ -71,6 +71,11 @@ class Task(SQLModel, table=True):
     agent_id: str = Field(
         index=True,
         description="ID of the agent assigned to this task",
+    )
+    parent_task_id: str | None = Field(
+        default=None,
+        index=True,
+        description="ID of the parent task that delegated this task",
     )
     input: str = Field(
         description="The user's input or goal for this task",
@@ -153,6 +158,7 @@ class TaskResponse(SQLModel):
     """Schema for task API responses."""
     id: str
     agent_id: str
+    parent_task_id: str | None = None
     input: str
     status: str
     output: str
