@@ -272,12 +272,13 @@ Give agents short-term working memory and long-term vector-based knowledge retri
 
 **Key Files**: `backend/src/agentos/core/memory/vector.py`
 
-#### 5.3 Memory API
-- [ ] `POST /memory/store` — Store a memory entry
-- [ ] `POST /memory/query` — Query by semantic similarity
-- [ ] Wire memory into the agent runtime (auto-retrieve context before reasoning)
+#### 5.3 Memory API & Auto-RAG ✅
+- [x] `POST /memory/upsert` — Store a memory entry via REST
+- [x] `POST /memory/search` — Query by semantic similarity via REST
+- [x] Wire memory into the agent runtime (Auto-RAG: auto-retrieve context before reasoning)
+- [x] Implement `auto_rag` flag in Agent Runtime API
 
-**Key Files**: `backend/src/agentos/core/memory/api.py`
+**Key Files**: `backend/src/agentos/api/routes/memory.py`, `backend/src/agentos/core/runtime/runtime.py`
 
 ### Deliverables
 - Agents automatically retrieve relevant context from memory before reasoning

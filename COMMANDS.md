@@ -70,6 +70,11 @@ $env:PYTHONPATH="src"; uv run python test_memory.py
 $env:PYTHONPATH="src"; uv run python test_vector.py
 ```
 
+**Test Auto-RAG (API Context Injection):**
+```bash
+$env:PYTHONPATH="src"; uv run python test_auto_rag.py
+```
+
 **Test MCP Integration:**
 ```bash
 $env:PYTHONPATH="src"; uv run python test_mcp_integration.py

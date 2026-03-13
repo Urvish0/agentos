@@ -83,6 +83,7 @@ class AgentRuntime:
         provider: str | None = None,
         tools: list[str] | None = None,
         thread_id: str | None = None,
+        auto_rag: bool = False,
     ):
         self.model = model
         self.temperature = temperature
@@ -90,6 +91,7 @@ class AgentRuntime:
         self.provider = provider
         self.tools = tools or []
         self.thread_id = thread_id
+        self.auto_rag = auto_rag
         
         # Get base LLM
         self.llm = get_llm(model=model, temperature=temperature, provider=provider)
@@ -218,10 +220,25 @@ class AgentRuntime:
         # 2. Add current input
         initial_messages.append(HumanMessage(content=input_text))
 
+        # 3. Auto-RAG: Search for relevant context if enabled
+        current_system_prompt = system_prompt or self.system_prompt
+        if self.auto_rag:
+            from agentos.core.memory.vector import vector_memory
+            logger.info("Auto-RAG search initiated", query=input_text)
+            results = vector_memory.search(input_text, top_k=3)
+            
+            if results:
+                context_str = "\n\nRelevant Context from Knowledge Base:\n"
+                for i, res in enumerate(results):
+                    context_str += f"[{i+1}] {res['content']}\n"
+                
+                current_system_prompt += context_str
+                logger.info("Auto-RAG context injected", results_count=len(results))
+
         initial_state: AgentState = {
             "run_id": run_id,
             "input": input_text,
-            "system_prompt": system_prompt or self.system_prompt,
+            "system_prompt": current_system_prompt,
             "reasoning_steps": [],
             "messages": initial_messages,
             "tools_available": self.tools,

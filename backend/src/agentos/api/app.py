@@ -22,6 +22,7 @@ class AgentRunRequest(BaseModel):
     provider: str | None = Field(None, description="LLM provider: groq, openai, anthropic")
     tools: list[str] | None = Field(default=None, description="List of tools to enable for this run")
     thread_id: str | None = Field(None, description="Conversation thread ID for short-term memory")
+    auto_rag: bool = Field(default=False, description="Whether to automatically search the knowledge base for context")
 
 
 class AgentRunResponse(BaseModel):
@@ -78,8 +79,10 @@ def create_app() -> FastAPI:
     # ------------------------------------------------------------------
     from agentos.api.routes.agents import router as agents_router
     from agentos.api.routes.tasks import router as tasks_router
+    from agentos.api.routes.memory import router as memory_router
     app.include_router(agents_router)
     app.include_router(tasks_router)
+    app.include_router(memory_router)
 
     # ------------------------------------------------------------------
     # Health & Info
@@ -125,6 +128,7 @@ def create_app() -> FastAPI:
                 provider=request.provider,
                 tools=request.tools,
                 thread_id=request.thread_id,
+                auto_rag=request.auto_rag,
             )
             result = await runtime.run(
                 input_text=request.input,
@@ -164,6 +168,7 @@ def create_app() -> FastAPI:
             provider=request.provider,
             tools=request.tools,
             thread_id=request.thread_id,
+            auto_rag=request.auto_rag,
         )
 
         async def event_stream():

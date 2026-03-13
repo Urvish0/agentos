@@ -215,3 +215,20 @@
 - **Privacy & Cost**: FastEmbed runs locally, ensuring that private knowledge remains on the machine and doesn't incur per-token embedding costs.
 
 ---
+
+## 🔌 Phase 5.3: Memory API & Auto-RAG
+**Date:** March 13, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Implemented REST API routes for long-term memory management (`/memory/upsert`, `/memory/search`, `/memory/points`).
+- Integrated "Auto-RAG" into the `AgentRuntime` reasoning loop.
+- Added `auto_rag` flag to the agent run request, enabling automatic context lookup from the vector database.
+- Successfully verified that agents can answer questions using injected context without explicitly calling a tool.
+
+### Why we did it
+- **Integration Flexibility**: Exposing the knowledge base via API allows external systems (or a frontend dashboard) to populate or query agent knowledge independently.
+- **Enhanced Intelligence**: Auto-RAG ensures agents are always grounded with relevant long-term knowledge from the very first message, reducing the need for multiple reasoning turns and improving response quality.
+- **Efficiency**: Context injection happens before the LLM call, saving the cost and latency of a separate "tool calling" turn just to fetch knowledge.
+
+---
