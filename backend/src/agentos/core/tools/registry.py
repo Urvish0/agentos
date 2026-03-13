@@ -93,5 +93,10 @@ class ToolRegistry:
         # Search
         self.register_tool("search", "Search the web for real-time information using Tavily", search, SearchArgs)
 
+        # Memory (RAG)
+        from agentos.core.tools.builtins.memory import save_to_knowledge_base, query_knowledge_base, SaveToKnowledgeBaseArgs, QueryKnowledgeBaseArgs
+        self.register_tool("save_to_knowledge_base", "Permanently store information in long-term memory", save_to_knowledge_base, SaveToKnowledgeBaseArgs)
+        self.register_tool("query_knowledge_base", "Search for information in long-term knowledge base", query_knowledge_base, QueryKnowledgeBaseArgs)
+
 registry = ToolRegistry()
 registry.register_builtin_tools()

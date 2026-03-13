@@ -198,3 +198,20 @@
 - **Reliability (Kubernetes Vision)**: Idempotency is a core principle of reliable distributed systems. As we build "Kubernetes for Agents," we must ensure that our execution logic is deterministic and safe to retry.
 
 ---
+
+## 📚 Phase 5.2: Long-term Memory (Qdrant)
+**Date:** March 13, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Integrated **Qdrant** as the primary vector database for long-term knowledge storage.
+- Used **FastEmbed** for local, high-performance embedding generation, eliminating the need for external embedding APIs.
+- Implemented `save_to_knowledge_base` and `query_knowledge_base` tools.
+- Enabled agents to actively manage their own memory by storing and searching contextual snippets.
+
+### Why we did it
+- **Knowledge Persistence**: Short-term memory eventually overflows or resets. Long-term memory allows agents to build a permanent knowledge base that grows with every interaction.
+- **RAG Capability**: This is the foundation for agents that can reason over private documents, past project notes, or any other large-scale data without stuffing it all into the prompt.
+- **Privacy & Cost**: FastEmbed runs locally, ensuring that private knowledge remains on the machine and doesn't incur per-token embedding costs.
+
+---

@@ -264,12 +264,13 @@ Give agents short-term working memory and long-term vector-based knowledge retri
 
 **Key Files**: `backend/src/agentos/core/memory/short_term.py`
 
-#### 5.2 Long-Term Memory (Qdrant)
-- [ ] Integrate Qdrant client for vector storage
-- [ ] Implement embedding generation (use a lightweight model or API)
-- [ ] Support storing and retrieving documents by semantic similarity
+#### 5.2 Long-Term Memory (Qdrant) ✅
+- [x] Integrate Qdrant client for vector storage (using modern `query_points` API)
+- [x] Implement embedding generation (FastEmbed local BGE model)
+- [x] Support storing and retrieving documents by semantic similarity
+- [x] Create builtin memory tools: `save_to_knowledge_base`, `query_knowledge_base`
 
-**Key Files**: `backend/src/agentos/core/memory/long_term.py`
+**Key Files**: `backend/src/agentos/core/memory/vector.py`
 
 #### 5.3 Memory API
 - [ ] `POST /memory/store` — Store a memory entry

@@ -65,6 +65,11 @@ $env:PYTHONPATH="src"; uv run python test_builtins.py
 $env:PYTHONPATH="src"; uv run python test_memory.py
 ```
 
+**Test Long-term Memory (Qdrant RAG):**
+```bash
+$env:PYTHONPATH="src"; uv run python test_vector.py
+```
+
 **Test MCP Integration:**
 ```bash
 $env:PYTHONPATH="src"; uv run python test_mcp_integration.py
