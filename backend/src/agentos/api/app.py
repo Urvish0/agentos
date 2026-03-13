@@ -11,8 +11,10 @@ from fastapi import Request
 from agentos.core.runtime.config import config
 from agentos.services.observability.logging import setup_logging
 from agentos.services.observability.metrics import REGISTRY
+from agentos.services.observability.tracing import setup_tracing, get_tracer
 
-# Initialize logging as early as possible
+# Initialize observability as early as possible
+setup_tracing(service_name="agentos-api", endpoint=None) # Start tracing
 setup_logging(json_format=not config.debug)
 logger = structlog.get_logger()
 base_logger = logger # Store base logger for middleware
@@ -57,6 +59,10 @@ def create_app() -> FastAPI:
         description="Infrastructure platform for deploying and orchestrating AI agents.",
         version="0.1.0",
     )
+
+    # Instrument FastAPI with OpenTelemetry
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    FastAPIInstrumentor.instrument_app(app)
 
     # Configure CORS
     app.add_middleware(
@@ -132,11 +138,20 @@ def create_app() -> FastAPI:
         """
         Expose Prometheus metrics for scraping.
         """
-        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+        import os
+        from prometheus_client import generate_latest, CONTENT_TYPE_LATEST, CollectorRegistry, multiprocess
         from fastapi.responses import Response
 
+        # In multi-process mode, we must re-generate the registry at scrape time
+        # to collect the latest values from all worker files on disk
+        if "PROMETHEUS_MULTIPROC_DIR" in os.environ:
+            registry = CollectorRegistry()
+            multiprocess.MultiProcessCollector(registry)
+        else:
+            registry = REGISTRY
+
         return Response(
-            generate_latest(REGISTRY),
+            generate_latest(registry),
             media_type=CONTENT_TYPE_LATEST
         )
 

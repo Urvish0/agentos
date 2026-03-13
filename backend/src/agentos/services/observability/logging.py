@@ -25,6 +25,19 @@ def setup_logging(level: str = "INFO", json_format: bool = False) -> None:
         structlog.processors.TimeStamper(fmt="iso"),
     ]
 
+    # Add OpenTelemetry trace correlation
+    try:
+        from opentelemetry import trace
+        def add_otel_trace_id(_, __, event_dict):
+            span = trace.get_current_span()
+            if span.get_span_context().is_valid:
+                event_dict["trace_id"] = format(span.get_span_context().trace_id, '032x')
+                event_dict["span_id"] = format(span.get_span_context().span_id, '016x')
+            return event_dict
+        processors.insert(1, add_otel_trace_id)
+    except ImportError:
+        pass
+
     if json_format:
         # Production: JSON output
         processors.append(structlog.processors.JSONRenderer())

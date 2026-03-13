@@ -140,3 +140,30 @@ def cancel_task(
         return task
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+
+@router.get("/{task_id}/trace")
+def get_task_trace(
+    task_id: str,
+    session: Session = Depends(get_session),
+):
+    """
+    Get the OpenTelemetry trace ID and UI URL for a task.
+    """
+    task = service.get_task(session, task_id)
+    if not task:
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
+        
+    if not task.trace_id:
+        raise HTTPException(
+            status_code=404, 
+            detail=f"No trace found for task '{task_id}'. Task may not have run yet, or tracing was disabled."
+        )
+        
+    # Standard Jaeger UI port on localhost for development visualization
+    trace_url = f"http://localhost:16686/trace/{task.trace_id}"
+    
+    return {
+        "task_id": task_id,
+        "trace_id": task.trace_id,
+        "trace_url": trace_url
+    }

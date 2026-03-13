@@ -19,6 +19,9 @@ from langchain_core.utils.function_calling import convert_to_openai_tool
 from agentos.core.runtime.llm import get_llm
 from agentos.core.tools.registry import registry as tool_registry
 from agentos.services.observability.metrics import record_run_metrics
+from agentos.services.observability.tracing import get_tracer
+
+tracer = get_tracer("agent_runtime")
 
 logger = structlog.get_logger()
 
@@ -163,45 +166,53 @@ class AgentRuntime:
 
         logger.info("Reasoning step started", messages_count=len(messages))
 
-        try:
-            response = await self.llm.ainvoke(messages)
-            
-            # Update token usage
-            tokens = 0
-            if hasattr(response, "usage_metadata") and response.usage_metadata:
-                tokens = response.usage_metadata.get("total_tokens", 0)
+        with tracer.start_as_current_span("reason_node") as span:
+            span.set_attribute("messages_count", len(messages))
+            try:
+                response = await self.llm.ainvoke(messages)
+                
+                # Update token usage
+                tokens = 0
+                if hasattr(response, "usage_metadata") and response.usage_metadata:
+                    tokens = response.usage_metadata.get("total_tokens", 0)
+                
+                span.set_attribute("total_tokens", tokens)
 
-            return {
-                "messages": [response],
-                "total_tokens": state.get("total_tokens", 0) + tokens,
-                "output": response.content if not response.tool_calls else "",
-                "tool_calls_count": len(response.tool_calls) if hasattr(response, "tool_calls") else 0
-            }
+                return {
+                    "messages": [response],
+                    "total_tokens": state.get("total_tokens", 0) + tokens,
+                    "output": response.content if not response.tool_calls else "",
+                    "tool_calls_count": len(response.tool_calls) if hasattr(response, "tool_calls") else 0
+                }
 
-        except Exception as e:
-            logger.error("Reasoning failed", run_id=run_id, error=str(e), exc_info=True)
-            return {"error": str(e)}
+            except Exception as e:
+                logger.error("Reasoning failed", run_id=run_id, error=str(e), exc_info=True)
+                span.record_exception(e)
+                return {"error": str(e)}
 
     async def _action_node(self, state: AgentState) -> dict:
         """Execute tool calls requested by the LLM."""
         last_message = state["messages"][-1]
         tool_results = []
         
-        for tool_call in last_message.tool_calls:
-            name = tool_call["name"]
-            args = tool_call["args"]
-            call_id = tool_call["id"]
-            
-            logger.info("Executing tool call", name=name, args=args, run_id=state["run_id"])
-            
-            response = await tool_registry.invoke(name, **args)
-            
-            # Format as ToolMessage for LangChain
-            tool_msg = ToolMessage(
-                content=str(response.output) if response.success else f"Error: {response.error}",
-                tool_call_id=call_id
-            )
-            tool_results.append(tool_msg)
+        with tracer.start_as_current_span("action_node") as parent_span:
+            for tool_call in last_message.tool_calls:
+                name = tool_call["name"]
+                args = tool_call["args"]
+                call_id = tool_call["id"]
+                
+                with tracer.start_as_current_span(f"tool_call:{name}") as span:
+                    span.set_attribute("tool_name", name)
+                    logger.info("Executing tool call", name=name, args=args, run_id=state["run_id"])
+                    
+                    response = await tool_registry.invoke(name, **args)
+                    
+                    # Format as ToolMessage for LangChain
+                    tool_msg = ToolMessage(
+                        content=str(response.output) if response.success else f"Error: {response.error}",
+                        tool_call_id=call_id
+                    )
+                    tool_results.append(tool_msg)
             
         return {"messages": tool_results}
 
@@ -264,7 +275,19 @@ class AgentRuntime:
 
         # Execute the graph
         try:
-            result = await self.graph.ainvoke(initial_state)
+            with tracer.start_as_current_span("agent_run") as span:
+                span.set_attribute("agent_id", "default")
+                span.set_attribute("model", self.model or "default")
+                span.set_attribute("input", input_text)
+                
+                result = await self.graph.ainvoke(initial_state)
+                
+                span_context = span.get_span_context()
+                if span_context.is_valid:
+                    result["trace_id"] = f"{span_context.trace_id:032x}"
+                
+                if result.get("error"):
+                    span.set_status(trace.Status(trace.StatusCode.ERROR, result["error"]))
         finally:
             # Clear context after run
             structlog.contextvars.clear_contextvars()
@@ -299,6 +322,7 @@ class AgentRuntime:
             "total_tokens": result.get("total_tokens", 0),
             "execution_time_ms": round(execution_time_ms, 2),
             "error": result.get("error"),
+            "trace_id": result.get("trace_id"),
             "thread_id": self.thread_id
         }
 

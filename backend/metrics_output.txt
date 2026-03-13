@@ -1,0 +1,22 @@
+# HELP agentos_tokens_total Total tokens consumed by agents
+# TYPE agentos_tokens_total counter
+agentos_tokens_total{agent_id="default",model="llama-3.3-70b-versatile",provider="unknown",token_type="total"} 60.0
+# HELP agentos_tasks_total Total number of agent tasks executed
+# TYPE agentos_tasks_total counter
+agentos_tasks_total{agent_id="default",status="success"} 1.0
+# HELP agentos_cost_usd_total Estimated cost of agent runs in USD
+# TYPE agentos_cost_usd_total counter
+agentos_cost_usd_total{agent_id="default",model="llama-3.3-70b-versatile",provider="unknown"} 0.0
+# HELP agentos_execution_time_seconds Time spent executing agent runs
+# TYPE agentos_execution_time_seconds histogram
+agentos_execution_time_seconds_sum{agent_id="default",model="llama-3.3-70b-versatile",provider="unknown"} 0.6965129375457764
+agentos_execution_time_seconds_bucket{agent_id="default",le="0.1",model="llama-3.3-70b-versatile",provider="unknown"} 0.0
+agentos_execution_time_seconds_bucket{agent_id="default",le="0.5",model="llama-3.3-70b-versatile",provider="unknown"} 0.0
+agentos_execution_time_seconds_bucket{agent_id="default",le="1.0",model="llama-3.3-70b-versatile",provider="unknown"} 1.0
+agentos_execution_time_seconds_bucket{agent_id="default",le="2.0",model="llama-3.3-70b-versatile",provider="unknown"} 1.0
+agentos_execution_time_seconds_bucket{agent_id="default",le="5.0",model="llama-3.3-70b-versatile",provider="unknown"} 1.0
+agentos_execution_time_seconds_bucket{agent_id="default",le="10.0",model="llama-3.3-70b-versatile",provider="unknown"} 1.0
+agentos_execution_time_seconds_bucket{agent_id="default",le="30.0",model="llama-3.3-70b-versatile",provider="unknown"} 1.0
+agentos_execution_time_seconds_bucket{agent_id="default",le="60.0",model="llama-3.3-70b-versatile",provider="unknown"} 1.0
+agentos_execution_time_seconds_bucket{agent_id="default",le="+Inf",model="llama-3.3-70b-versatile",provider="unknown"} 1.0
+agentos_execution_time_seconds_count{agent_id="default",model="llama-3.3-70b-versatile",provider="unknown"} 1.0

@@ -94,7 +94,7 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
             result = loop.run_until_complete(runtime.run(db_task.input, run_id=task_id))
             
             # 4. Success Completion
-            task_service.update_task_status(
+            updated_task = task_service.update_task_status(
                 session, 
                 task_id, 
                 TaskStatus.COMPLETED.value,
@@ -102,11 +102,15 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
             )
             
             # Update additional metrics
-            db_task.model = result.get("model", "")
-            db_task.total_tokens = result.get("total_tokens", 0)
-            db_task.execution_time_ms = result.get("execution_time_ms", 0.0)
-            session.add(db_task)
-            session.commit()
+            if updated_task:
+                updated_task.model = result.get("model", "")
+                updated_task.total_tokens = result.get("total_tokens", 0)
+                updated_task.execution_time_ms = result.get("execution_time_ms", 0.0)
+                if "trace_id" in result:
+                    updated_task.trace_id = result["trace_id"]
+                    logger.info("Saved trace_id to task", task_id=task_id, trace_id=result["trace_id"])
+                session.add(updated_task)
+                session.commit()
             
             return {"status": "success", "run_id": result.get("run_id")}
 

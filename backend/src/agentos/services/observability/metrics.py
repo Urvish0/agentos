@@ -6,11 +6,15 @@ token usage, and costs.
 """
 
 import time
-from prometheus_client import Counter, Histogram, CollectorRegistry
+import os
+from prometheus_client import Counter, Histogram, CollectorRegistry, multiprocess
 
-# Create a custom registry to avoid pollution of the global one if needed, 
-# although global is usually fine for most FastAPI apps.
+# Create a custom registry for multi-process mode
+# This relies on the PROMETHEUS_MULTIPROC_DIR environment variable
 REGISTRY = CollectorRegistry()
+if "PROMETHEUS_MULTIPROC_DIR" in os.environ:
+    multiprocess.MultiProcessCollector(REGISTRY)
+
 
 # ---------------------------------------------------------------------------
 # Metrics Definitions

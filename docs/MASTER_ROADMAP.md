@@ -81,7 +81,7 @@ agentos/
 - [x] **Phase 3.3** — Retry and Failure Handling (COMPLETED)
 - [x] **Phase 4** — Tool Integration Layer (MCP) (COMPLETED)
 - [x] **Phase 5** — Memory Infrastructure (COMPLETED)
-- [/] **Phase 6** — Observability System (IN PROGRESS)
+- [x] **Phase 6** — Observability System (COMPLETED)
 
 ---
 
@@ -302,7 +302,8 @@ Give agents short-term working memory and long-term vector-based knowledge retri
 
 ## 📋 Phase 6 — Observability System
 - [x] **Phase 6.1**: Structured Logging (JSON)
-- [x] **Phase 6.2**: Metrics Collection (Prometheus)
+- [x] Phase 6.2: Metrics Collection (Prometheus) ✅
+- [x] Phase 6.3: Reasoning Traces & OpenTelemetry ✅
 
 > **Status**: IN PROGRESS | **Depends on**: Phase 2
 
@@ -327,11 +328,11 @@ Provide full transparency into agent behavior via structured logging, traces, an
 
 **Key Files**: `backend/src/agentos/services/observability/metrics.py`, `backend/src/agentos/api/app.py`
 
-#### 6.3 Reasoning Traces & OpenTelemetry
-- [ ] Instrument code with OpenTelemetry for distributed tracing
-- [ ] Capture full reasoning trace (Thought → Action → Observation) per task
-- [ ] Store traces in database or dedicated trace store (Jaegar/Tempo/Langfuse)
-- [ ] Expose via API: `GET /tasks/{task_id}/trace`
+#### 6.3 Reasoning Traces & OpenTelemetry ✅
+- [x] Instrument code with OpenTelemetry for distributed tracing
+- [x] Capture full reasoning trace (Thought → Action → Observation) per task
+- [x] Store traces in database or dedicated trace store (Jaegar/Tempo/Langfuse)
+- [x] Expose via API: `GET /tasks/{task_id}/trace` (via injected trace header)
 
 **Key Files**: `backend/src/agentos/services/observability/traces.py`
 

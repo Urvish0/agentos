@@ -109,6 +109,10 @@ class Task(SQLModel, table=True):
         default=0,
         description="Number of retry attempts",
     )
+    trace_id: str | None = Field(
+        default=None,
+        description="OpenTelemetry Trace identifier",
+    )
     max_retries: int = Field(
         default=3,
         description="Maximum allowed retries",
@@ -168,6 +172,7 @@ class TaskResponse(SQLModel):
     execution_time_ms: float
     retry_count: int
     max_retries: int
+    trace_id: str | None = None
     created_at: str
     updated_at: str
     completed_at: str
