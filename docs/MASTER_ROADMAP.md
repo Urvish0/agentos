@@ -336,10 +336,10 @@ Provide full transparency into agent behavior via structured logging, traces, an
 
 **Key Files**: `backend/src/agentos/services/observability/traces.py`
 
-#### 6.4 Immutable Audit Logging (Compliance)
-- [ ] Implement append-only audit log for sensitive actions (e.g. file writes, API calls)
-- [ ] Store audit logs in a tamper-evident/read-only storage layer
-- [ ] Include user/agent attribution and timestamps for every entry
+#### 6.4 Immutable Audit Logging (Compliance) ✅
+- [x] Implement append-only audit log for sensitive actions (e.g. file writes, API calls)
+- [x] Store audit logs in a tamper-evident/read-only storage layer
+- [x] Include user/agent attribution and timestamps for every entry
 
 **Key Files**: `backend/src/agentos/services/observability/audit.py`
 

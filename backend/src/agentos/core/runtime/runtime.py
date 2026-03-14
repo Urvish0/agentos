@@ -20,6 +20,7 @@ from agentos.core.runtime.llm import get_llm
 from agentos.core.tools.registry import registry as tool_registry
 from agentos.services.observability.metrics import record_run_metrics
 from agentos.services.observability.tracing import get_tracer
+from agentos.services.observability.audit import audit_logger
 
 tracer = get_tracer("agent_runtime")
 
@@ -204,6 +205,17 @@ class AgentRuntime:
                 with tracer.start_as_current_span(f"tool_call:{name}") as span:
                     span.set_attribute("tool_name", name)
                     logger.info("Executing tool call", name=name, args=args, run_id=state["run_id"])
+                    
+                    # Record sensitive interaction in the cryptographic audit log
+                    span_context = span.get_span_context()
+                    trace_id = f"{span_context.trace_id:032x}" if span_context.is_valid else None
+                    audit_logger.log_sensitive_action(
+                        actor=f"agent:{state['run_id']}",
+                        action="tool_execution",
+                        resource=f"tool:{name}",
+                        details={"args": args},
+                        trace_id=trace_id
+                    )
                     
                     response = await tool_registry.invoke(name, **args)
                     

@@ -11,6 +11,7 @@ import structlog
 from agentos.core.manager.database import get_session
 from agentos.core.manager.models import AgentCreate, AgentUpdate, AgentResponse
 from agentos.core.manager import service
+from agentos.services.observability.audit import audit_logger
 
 logger = structlog.get_logger()
 
@@ -30,6 +31,14 @@ def register_agent(
     be used to run tasks via POST /agent/run.
     """
     agent = service.create_agent(session, agent_data)
+    
+    audit_logger.log_sensitive_action(
+        actor="system_api",
+        action="agent_registered",
+        resource=f"agent:{agent.id}",
+        details={"name": agent.name, "version": agent.version}
+    )
+    
     return agent
 
 
@@ -77,6 +86,14 @@ def update_agent(
     agent = service.update_agent(session, agent_id, agent_data)
     if not agent:
         raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found")
+        
+    audit_logger.log_sensitive_action(
+        actor="system_api",
+        action="agent_updated",
+        resource=f"agent:{agent.id}",
+        details={"updated_fields": agent_data.model_dump(exclude_unset=True)}
+    )
+        
     return agent
 
 
@@ -91,3 +108,10 @@ def delete_agent(
     deleted = service.delete_agent(session, agent_id)
     if not deleted:
         raise HTTPException(status_code=404, detail=f"Agent '{agent_id}' not found")
+        
+    audit_logger.log_sensitive_action(
+        actor="system_api",
+        action="agent_deleted",
+        resource=f"agent:{agent_id}",
+        details={}
+    )

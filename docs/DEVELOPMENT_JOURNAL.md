@@ -274,3 +274,19 @@
 - **Observability-by-default**: As defined in the Vision docs, AgentOS must be "transparent." Tracing allows developers to see exactly how a high-level goal was broken down into steps.
 - **Log Correlation**: In a busy system with thousands of agents, looking at flat logs is impossible. By injecting the `trace_id` into every log line, we allow developers to "grep" for a specific request ID and see every log related to that reasoning chain combined with the trace.
 - **Performance Debugging**: Traces provide a visual timeline. If an agent takes 5 seconds, the trace shows exactly which step (LLM vs Tool vs Memory) was the bottleneck.
+
+---
+
+## 🔒 Phase 6.4: Immutable Audit Logging
+**Date:** March 14, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Created an `AuditLogger` to record sensitive actions (e.g. agent registry changes, tool executions) to an append-only JSONL file.
+- Implemented a **cryptographic hash chain**, where each log entry contains the SHA-256 hash of the previous entry.
+- Created `verify_audit_chain()` to detect any tampering with the log file history.
+- Instrumented `agents.py` and `runtime.py` to capture actor, action, resource, and `trace_id` for every sensitive event.
+
+### Why we did it
+- **Compliance & Security**: AI agents executing actions need a non-repudiable audit trail. By using a hash chain, we ensure that if a malicious actor modifies a past log, the chain breaks and the system detects the tampering.
+- **MVP Simplicity**: For v0.1, an append-only file with a mathematical hash chain provides robust guarantees without the heavy infrastructure of a ledger database like AWS QLDB.
