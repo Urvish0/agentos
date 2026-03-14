@@ -10,7 +10,7 @@ class AuditLogger:
     """
     Immutable Audit Logger that creates a tamper-evident cryptographic hash chain.
     """
-    def __init__(self, log_dir: str = "storage/audit", filename: str = "audit_log.jsonl"):
+    def __init__(self, log_dir: str = "../storage/audit", filename: str = "audit_log.jsonl"):
         self.log_dir = Path(log_dir)
         self.log_dir.mkdir(parents=True, exist_ok=True)
         self.file_path = self.log_dir / filename
