@@ -358,9 +358,9 @@ Measure and validate agent performance using automated evaluation frameworks.
 
 ### Sub-Phases
 
-#### 7.1 Evaluation Pipeline
-- [ ] Define evaluation workflow: input → agent run → score
-- [ ] Support batch evaluation mode (run agent against test dataset)
+#### 7.1 Evaluation Pipeline ✅
+- [x] Define evaluation workflow: input → agent run → score
+- [x] Support batch evaluation mode (run agent against test dataset)
 
 #### 7.2 Framework Integration
 - [ ] Integrate RAGAS for RAG evaluation metrics

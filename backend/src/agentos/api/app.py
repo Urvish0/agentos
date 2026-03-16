@@ -112,6 +112,7 @@ def create_app() -> FastAPI:
         from agentos.core.manager.database import create_db_and_tables
         # Import models so SQLModel.metadata knows about all tables
         from agentos.core.orchestrator.models import Task  # noqa: F401
+        from agentos.services.evaluation.models import Evaluation  # noqa: F401
         create_db_and_tables()
 
         # Initialize MCP Servers
@@ -125,9 +126,12 @@ def create_app() -> FastAPI:
     from agentos.api.routes.agents import router as agents_router
     from agentos.api.routes.tasks import router as tasks_router
     from agentos.api.routes.memory import router as memory_router
+    from agentos.api.routes.evaluations import router as eval_router
+    
     app.include_router(agents_router)
     app.include_router(tasks_router)
     app.include_router(memory_router)
+    app.include_router(eval_router)
 
     # ------------------------------------------------------------------
     # Health, Info & Metrics

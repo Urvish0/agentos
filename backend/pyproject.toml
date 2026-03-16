@@ -29,5 +29,8 @@ dependencies = [
     "uvicorn>=0.41.0",
 ]
 
+[project.optional-dependencies]
+eval = ["ragas>=0.2.1", "deepeval>=2.1.0"]
+
 [dependency-groups]
 dev = ["black>=26.3.0", "mypy>=1.19.1", "pytest>=9.0.2", "ruff>=0.15.5"]
