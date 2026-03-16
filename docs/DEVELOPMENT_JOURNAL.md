@@ -5,6 +5,17 @@
 
 ---
 
+## [2026-03-16] Phase 7.2: Advanced Framework Integration (RAGAS, DeepEval)
+- **Goal**: Integrate advanced evaluation frameworks to support LLM-based metrics.
+- **Outcome**: 
+  - Implemented `RagasEvaluator` and `DeepEvalEvaluator` adapters.
+  - Added an `EvaluatorType` factory for dynamic framework selection.
+  - Updated API and models to support multi-framework evaluation runs.
+  - Verified with `tests/test_advanced_evaluators.py` using mocked metrics.
+  - Applied manual DB migration to support new `evaluator_type` column.
+
+---
+
 ## [2026-03-16] Phase 7.1: Evaluation Pipeline Completion
 - **Goal**: Implement evaluation framework with batch support and heuristic scoring.
 - **Outcome**: 

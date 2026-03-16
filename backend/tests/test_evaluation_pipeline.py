@@ -68,4 +68,9 @@ async def test_evaluation_pipeline():
     print("\n🎉 Evaluation Pipeline Verification SUCCESSFUL!")
 
 if __name__ == "__main__":
-    asyncio.run(test_evaluation_pipeline())
+    try:
+        asyncio.run(test_evaluation_pipeline())
+    except Exception:
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)

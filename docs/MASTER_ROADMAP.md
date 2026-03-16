@@ -362,10 +362,10 @@ Measure and validate agent performance using automated evaluation frameworks.
 - [x] Define evaluation workflow: input → agent run → score
 - [x] Support batch evaluation mode (run agent against test dataset)
 
-#### 7.2 Framework Integration
-- [ ] Integrate RAGAS for RAG evaluation metrics
-- [ ] Integrate DeepEval for general LLM evaluation
-- [ ] Support custom evaluation metrics
+#### 7.2 Framework Integration ✅
+- [x] Integrate RAGAS for RAG evaluation metrics
+- [x] Integrate DeepEval for general LLM evaluation
+- [x] Support custom evaluation metrics
 
 #### 7.3 Evaluation Reports
 - [ ] Generate structured evaluation reports (JSON/HTML)

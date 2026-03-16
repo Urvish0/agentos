@@ -11,6 +11,7 @@ import operator
 from typing import Any, TypedDict, Annotated
 
 import structlog
+from opentelemetry import trace
 from datetime import datetime
 from langgraph.graph import StateGraph, END
 from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
@@ -335,7 +336,8 @@ class AgentRuntime:
             "execution_time_ms": round(execution_time_ms, 2),
             "error": result.get("error"),
             "trace_id": result.get("trace_id"),
-            "thread_id": self.thread_id
+            "thread_id": self.thread_id,
+            "retrieved_context": [res["content"] for res in results] if self.auto_rag and 'results' in locals() and results else []
         }
 
     async def run_stream(self, *args, **kwargs):

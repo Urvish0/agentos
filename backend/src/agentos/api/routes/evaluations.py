@@ -9,7 +9,8 @@ from agentos.services.evaluation.models import (
     EvaluationCreate, 
     EvaluationResponse,
     EvaluationBatchResponse,
-    EvaluationCase
+    EvaluationCase,
+    EvaluatorType
 )
 from agentos.services.evaluation import service
 
@@ -19,11 +20,16 @@ class BatchEvalRequest(BaseModel):
     name: str
     agent_id: str
     cases: List[Dict[str, str]]
+    evaluator_type: EvaluatorType = EvaluatorType.SIMPLE
 
 @router.post("/run", response_model=EvaluationResponse)
-async def run_evaluation(agent_id: str, input_text: str, expected_output: Optional[str] = None, db=Depends(get_db)):
+async def run_evaluation(agent_id: str, 
+                         input_text: str, 
+                         expected_output: Optional[str] = None, 
+                         evaluator_type: EvaluatorType = EvaluatorType.SIMPLE,
+                         db=Depends(get_db)):
     """Trigger a new evaluation pipeline (Agent Run -> Scorer)."""
-    return await service.run_evaluation_workflow(db, agent_id, input_text, expected_output)
+    return await service.run_evaluation_workflow(db, agent_id, input_text, expected_output, evaluator_type=evaluator_type)
 
 @router.post("/batch", response_model=EvaluationBatchResponse)
 async def run_batch_evaluation(request: BatchEvalRequest, db=Depends(get_db)):
@@ -32,7 +38,8 @@ async def run_batch_evaluation(request: BatchEvalRequest, db=Depends(get_db)):
         db, 
         name=request.name, 
         cases=request.cases, 
-        agent_id=request.agent_id
+        agent_id=request.agent_id,
+        evaluator_type=request.evaluator_type
     )
 
 @router.get("", response_model=List[EvaluationResponse])
