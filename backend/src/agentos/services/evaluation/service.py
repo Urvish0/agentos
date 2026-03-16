@@ -19,6 +19,15 @@ def get_evaluation(db: Session, eval_id: uuid.UUID) -> Optional[Evaluation]:
     """Retrieve an evaluation record by ID."""
     return db.get(Evaluation, eval_id)
 
+def list_batches(db: Session, skip: int = 0, limit: int = 10) -> List[EvaluationBatch]:
+    """List evaluation batches."""
+    query = select(EvaluationBatch).offset(skip).limit(limit)
+    return db.exec(query).all()
+
+def get_batch(db: Session, batch_id: uuid.UUID) -> Optional[EvaluationBatch]:
+    """Retrieve a batch record by ID."""
+    return db.get(EvaluationBatch, batch_id)
+
 def list_evaluations(db: Session, task_id: Optional[str] = None, batch_id: Optional[uuid.UUID] = None, skip: int = 0, limit: int = 100) -> List[Evaluation]:
     """List evaluations, optionally filtered by task_id or batch_id."""
     query = select(Evaluation)
@@ -86,6 +95,7 @@ async def run_evaluation_workflow(db: Session,
         # 4. Update Record
         eval_record.score = scores["score"]
         eval_record.metrics = scores["metrics"]
+        eval_record.usage_metadata = result.get("usage_metadata")
         eval_record.status = "completed"
         eval_record.completed_at = datetime.now(timezone.utc)
         

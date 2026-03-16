@@ -17,6 +17,7 @@ class EvaluationBase(SQLModel):
     eval_type: str = Field(description="E.g., 'ragas', 'deepeval', 'custom', 'simple'")
     score: Optional[float] = Field(default=None, description="Aggregate score 0.0 to 1.0")
     metrics: Optional[Dict[str, Any]] = Field(default=None, sa_type=JSON)
+    usage_metadata: Optional[Dict[str, Any]] = Field(default=None, sa_type=JSON)
     status: str = Field(default="pending", description="pending, running, completed, failed")
     error_message: Optional[str] = None
     batch_id: Optional[uuid.UUID] = Field(default=None, foreign_key="evaluationbatch.id")

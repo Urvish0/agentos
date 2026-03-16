@@ -47,6 +47,11 @@ def list_evaluations(task_id: Optional[uuid.UUID] = None, batch_id: Optional[uui
     """List evaluations, optionally filtering by task_id or batch_id."""
     return service.list_evaluations(db, task_id=task_id, batch_id=batch_id, skip=skip, limit=limit)
 
+@router.get("/batches", response_model=List[EvaluationBatchResponse])
+def list_evaluation_batches(skip: int = 0, limit: int = 100, db=Depends(get_db)):
+    """List all evaluation batches."""
+    return service.list_batches(db, skip=skip, limit=limit)
+
 @router.get("/{eval_id}", response_model=EvaluationResponse)
 def get_evaluation(eval_id: uuid.UUID, db=Depends(get_db)):
     """Get details of a specific evaluation."""
@@ -54,3 +59,15 @@ def get_evaluation(eval_id: uuid.UUID, db=Depends(get_db)):
     if not db_eval:
         raise HTTPException(status_code=404, detail="Evaluation not found")
     return db_eval
+
+@router.get("/batches/{batch_id}/report")
+async def get_batch_report(batch_id: uuid.UUID, format: str = "json", db=Depends(get_db)):
+    """Get evaluation report for a batch (JSON or HTML)."""
+    from agentos.services.evaluation import reporting
+    
+    if format == "html":
+        from fastapi.responses import HTMLResponse
+        content = reporting.generate_html_report(db, batch_id)
+        return HTMLResponse(content=content)
+    
+    return reporting.generate_json_report(db, batch_id)
