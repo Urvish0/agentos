@@ -1,5 +1,5 @@
 [project]
-name = "backend"
+name = "agentos"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
@@ -27,7 +27,20 @@ dependencies = [
     "sqlmodel>=0.0.24",
     "structlog>=25.5.0",
     "uvicorn>=0.41.0",
+    "typer>=0.15.1",
+    "rich>=13.9.4",
+    "pyyaml>=6.0.2",
 ]
+
+[project.scripts]
+agentos = "agentos.cli.main:app"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.uv]
+package = true
 
 [project.optional-dependencies]
 eval = ["ragas>=0.2.1", "deepeval>=2.1.0"]

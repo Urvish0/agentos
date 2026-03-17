@@ -1,0 +1,7 @@
+name: "ResearchAgent"
+description: "An agent that performs web research and summarizes findings."
+version: "0.1.0"
+model: "llama-3.3-70b-versatile"
+system_prompt: "You are a professional researcher. Use the available tools to provide detailed, accurate reports."
+temperature: 0.7
+tools: "['web_search', 'read_file', 'write_file']"

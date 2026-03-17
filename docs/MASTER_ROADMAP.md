@@ -81,7 +81,8 @@ agentos/
 - [x] **Phase 3.3** — Retry and Failure Handling (COMPLETED)
 - [x] **Phase 4** — Tool Integration Layer (MCP) (COMPLETED)
 - [x] **Phase 5** — Memory Infrastructure (COMPLETED)
-- [x] **Phase 6** — Observability System (COMPLETED)
+- [x] **Phase 7** — Evaluation Framework (COMPLETED)
+- [x] **Phase 8.1** — CLI Interface (COMPLETED)
 
 ---
 
@@ -349,9 +350,9 @@ Provide full transparency into agent behavior via structured logging, traces, an
 
 ---
 
-## 📋 Phase 7 — Evaluation Framework
+## 📋 Phase 7 — Evaluation Framework ✅
 
-> **Status**: NOT STARTED | **Depends on**: Phase 2, Phase 6
+> **Status**: COMPLETED | **Depends on**: Phase 2, Phase 6
 
 ### Objective
 Measure and validate agent performance using automated evaluation frameworks.
@@ -367,10 +368,10 @@ Measure and validate agent performance using automated evaluation frameworks.
 - [x] Integrate DeepEval for general LLM evaluation
 - [x] Support custom evaluation metrics
 
-#### 7.3 Evaluation Reports
-- [ ] Generate structured evaluation reports (JSON/HTML)
-- [ ] Store evaluation results in database
-- [ ] Expose via API: `GET /evaluations/{eval_id}`
+#### 7.3 Evaluation Reports ✅
+- [x] Generate structured evaluation reports (JSON/HTML)
+- [x] Store evaluation results in database
+- [x] Expose via API: `GET /evaluations/{eval_id}`
 
 **Key Files**: `backend/src/agentos/services/evaluation/`
 
@@ -379,22 +380,22 @@ Measure and validate agent performance using automated evaluation frameworks.
 
 ---
 
-## 📋 Phase 8 — Developer Interfaces (CLI + SDK)
+## 📋 Phase 8 — Developer Interfaces (CLI + SDK) ✅
 
-> **Status**: NOT STARTED | **Depends on**: Phases 2-7
+> **Status**: IN PROGRESS | **Depends on**: Phases 2-7
 
 ### Objective
 Provide developer-friendly interfaces for interacting with AgentOS.
 
 ### Sub-Phases
 
-#### 8.1 CLI Interface
-- [ ] Implement `agentos init` — Initialize a new agent project
-- [ ] Implement `agentos register-agent` — Register from config file
-- [ ] Implement `agentos run-task` — Submit and monitor a task
-- [ ] Implement `agentos list-agents` — List registered agents
-- [ ] Implement `agentos inspect-task` — View task details and trace
-- [ ] Use `click` or `typer` for CLI framework
+#### 8.1 CLI Interface ✅
+- [x] Implement `agentos init` — Initialize a new agent project
+- [x] Implement `agentos register-agent` — Register from config file
+- [x] Implement `agentos run-task` — Submit and monitor a task
+- [x] Implement `agentos list-agents` — List registered agents
+- [x] Implement `agentos inspect-task` — View task details and trace
+- [x] Use `click` or `typer` for CLI framework
 
 **Key Files**: `backend/src/agentos/cli/`
 

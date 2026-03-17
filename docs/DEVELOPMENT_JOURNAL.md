@@ -341,3 +341,25 @@
 - **Cost & Performance Visibility**: Tracking token usage across batches is a prerequisite for production deployment and budget management.
 - **Stakeholder Trust**: Transparent, beautiful reports make it easier for non-technical users to understand agent performance and identify failure modes visually.
 - **Analytics Foundation**: Exposing these metrics via API allows the frontend dashboard to build trend visualizations and comparison charts.
+
+---
+
+## 🛠️ Phase 8.1: CLI Interface (The Developer Swiss Army Knife)
+**Date:** March 17, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Implemented a modular CLI using **Typer** and **Rich**.
+- Built a centralized **API Client** (`client.py`) using `httpx` to communicate with the AgentOS Backend.
+- Created three primary command groups:
+    - `init`: Generates a sample `agent.yaml` for a "Day Zero" quickstart.
+    - `agents`: Supports `list` (Rich table view) and `register` (YAML/JSON config upload).
+    - `tasks`: Supports `run` (real-time polling loop), `status`, `cancel`, and `trace` (direct Jaeger links).
+- Configured **uv** integration in `pyproject.toml` to install `agentos` as a global command in the virtual environment.
+- Documented everything in a comprehensive [CLI_MANUAL.md](../docs/CLI_MANUAL.md).
+
+### Why we did it
+- **Developer Velocity**: Reading/writing raw JSON against API endpoints is slow. The CLI provides a high-level, human-friendly interface that lets developers iterate on agents in seconds.
+- **Reproducibility (IaC)**: By using YAML-based registration, agents are treated as code. You can version them, share them, and deploy them to any environment using the same CLI command.
+- **Transparency**: The `tasks run` command uses a Rich polling loop to show exactly what's happening. The `trace` command bridges the gap between the terminal and deep observability (Jaeger), making debugging seamless.
+- **Automation Ready**: The CLI is designed to be called from bash scripts and CI/CD pipelines, fulfilling our vision of "Kubernetes for Agents" by providing a reliable administrative tool.
