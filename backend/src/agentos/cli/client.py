@@ -42,3 +42,8 @@ class AgentOSClient:
         response = self.client.get(f"/tasks/{task_id}/trace")
         response.raise_for_status()
         return response.json().get("trace_url", "No trace URL available")
+
+    def list_plugins(self) -> List[Dict[str, Any]]:
+        response = self.client.get("/plugins/")
+        response.raise_for_status()
+        return response.json()

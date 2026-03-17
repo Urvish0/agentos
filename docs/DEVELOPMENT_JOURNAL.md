@@ -382,3 +382,23 @@
 - **Future-Proofing (Async)**: Modern Python web frameworks (FastAPI, Starlette) are async-first. Providing native `async/await` support ensures the SDK is performant and doesn't block the event loop in high-throughput applications.
 - **Complexity Abstraction**: The `run_and_wait` pattern is the most common use case for an agent. By building it into the SDK, we save every developer from writing their own `while True: sleep(1)` polling code.
 - **Foundation for Phase 10**: The upcoming Next.js Dashboard and potential Python-based control planes will rely on this SDK as their primary communication layer.
+385: 
+386: ---
+387: 
+388: ## 🔌 Phase 9.1: Plugin Architecture (Extensibility)
+389: **Date:** March 17, 2026
+390: **Status:** ✅ Completed
+391: 
+392: ### What we did
+393: - Implemented a modular **Plugin Manager** capable of dynamic discovery and loading from a root `plugins/` directory.
+394: - Defined **Abstract Base Classes (ABCs)** for different plugin types: `ToolPlugin`, `EvaluatorPlugin`, and `MemoryPlugin`.
+395: - Integrated the plugin loading sequence into the FastAPI `on_startup` lifecyle to ensure process-safe registration.
+396: - Exposed a new **API Endpoint** (`GET /plugins/`) for system introspection.
+397: - Added the `agentos plugins list` **CLI command** to provide a unified view of active extensions.
+398: - Verified the system with a sample `WeatherPlugin` that auto-registers on backend startup.
+399: 
+400: ### Why we did it
+401: - **Extensibility**: AI infrastructure must be open. By allowing developers to "drop-in" Python files, we enable a community-driven ecosystem of tools and evaluators.
+402: - **Decoupling**: Core AgentOS logic should not know about specific external tools. Plugins provide a clean boundary where integrations are maintained separately from the engine.
+403: - **Introspection**: A platform that supports plugins must provide tools to audit them. The new API and CLI commands ensure operators know exactly what's "under the hood" at any given time.
+404: - **Roadmap Alignment**: This phase lays the groundwork for Phase 9.2 (Unified Plugin Registry) and the eventual goal of an AgentOS Marketplace.

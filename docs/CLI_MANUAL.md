@@ -34,12 +34,14 @@ Manage the Agent Registry.
 - `list`: Show all registered agents.
 - `register [FILE]`: Register a new agent from YAML/JSON.
 
-### `agentos tasks`
-Execute and monitor agent workflows.
-- `run [AGENT_ID] --input "..."`: Launch a task and poll for completion.
-- `status [TASK_ID]`: View detailed task state.
-- `cancel [TASK_ID]`: Stop a running task.
-- `trace [TASK_ID]`: Get the OTel/Jaeger trace link.
+### 📋 Task Monitoring
+- `agentos tasks run [AGENT_ID] --input "your prompt"`: Run a task (interactive).
+- `agentos tasks status [TASK_ID]`: Check detailed status.
+- `agentos tasks cancel [TASK_ID]`: Stop a running task.
+- `agentos tasks trace [TASK_ID]`: Get the OTel/Jaeger trace link.
+
+### 🔌 Plugin Management
+- `agentos plugins list`: View all loaded plugins and their types.
 
 ---
 

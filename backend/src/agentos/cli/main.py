@@ -1,5 +1,5 @@
 import typer
-from agentos.cli.cmds import init, agents, tasks
+from agentos.cli.cmds import init, agents, tasks, plugins
 
 app = typer.Typer(
     name="agentos",
@@ -11,6 +11,7 @@ app = typer.Typer(
 app.add_typer(init.app, name="init")
 app.add_typer(agents.app, name="agents")
 app.add_typer(tasks.app, name="tasks")
+app.add_typer(plugins.app, name="plugins")
 
 if __name__ == "__main__":
     app()

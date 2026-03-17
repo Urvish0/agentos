@@ -120,6 +120,23 @@ def create_app() -> FastAPI:
         if config.mcp_servers_config:
             await mcp_manager.initialize_from_config(config.mcp_servers_config)
 
+        # Discover and load plugins
+        from agentos.core.plugins.manager import plugin_manager
+        import os
+        # backend/src/agentos/api/app.py -> backend/src/agentos/api -> backend/src/agentos -> backend/src -> backend -> project_root
+        backend_api_dir = os.path.dirname(__file__)
+        project_root = os.path.abspath(os.path.join(backend_api_dir, "..", "..", "..", ".."))
+        # Verify if project_root really contains plugins/
+        plugins_path = os.path.join(project_root, "plugins")
+        if not os.path.exists(plugins_path):
+            # Try one level up just in case
+            project_root = os.path.abspath(os.path.join(project_root, ".."))
+            plugins_path = os.path.join(project_root, "plugins")
+            
+        if not os.path.exists(plugins_path):
+            os.makedirs(plugins_path, exist_ok=True)
+        plugin_manager.discover_and_load(plugins_path)
+
     # ------------------------------------------------------------------
     # Include routers
     # ------------------------------------------------------------------
@@ -127,11 +144,13 @@ def create_app() -> FastAPI:
     from agentos.api.routes.tasks import router as tasks_router
     from agentos.api.routes.memory import router as memory_router
     from agentos.api.routes.evaluations import router as eval_router
+    from agentos.api.routes.plugins import router as plugins_router
     
     app.include_router(agents_router)
     app.include_router(tasks_router)
     app.include_router(memory_router)
     app.include_router(eval_router)
+    app.include_router(plugins_router)
 
     # ------------------------------------------------------------------
     # Health, Info & Metrics

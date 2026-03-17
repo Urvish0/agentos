@@ -421,15 +421,15 @@ Enable extensibility through a plugin architecture.
 ### Sub-Phases
 
 #### 9.1 Plugin Architecture
-- [ ] Define plugin interface (abstract base class)
-- [ ] Implement plugin loader (file-based discovery)
-- [ ] Support plugin types: tools, memory backends, evaluation metrics, agent templates
+- [x] Define plugin interface (abstract base class)
+- [x] Implement plugin loader (file-based discovery)
+- [x] Support plugin types: tools, memory backends, evaluation metrics, agent templates
 
 #### 9.2 Plugin Registry
 - [ ] Implement plugin registration and lifecycle management
 - [ ] Add `agentos install-plugin` CLI command
 
-**Key Files**: `backend/src/agentos/core/plugins/`, `backend/src/agentos/plugins/`
+**Key Files**: `backend/src/agentos/core/plugins/`, `plugins/`, `backend/src/agentos/api/routes/plugins.py`, `backend/src/agentos/cli/cmds/plugins.py`
 
 ### Deliverables
 - Developers can drop a plugin into `plugins/` and it auto-registers
