@@ -40,8 +40,20 @@ Manage the Agent Registry.
 - `agentos tasks cancel [TASK_ID]`: Stop a running task.
 - `agentos tasks trace [TASK_ID]`: Get the OTel/Jaeger trace link.
 
-### 🔌 Plugin Management
-- `agentos plugins list`: View all loaded plugins and their types.
+### Plugins
+
+Manage the AgentOS extension ecosystem.
+
+*   `agentos plugins list`: Show all registered and loaded plugins.
+*   `agentos plugins enable [NAME]`: Enable a previously disabled plugin.
+*   `agentos plugins disable [NAME]`: Disable an active plugin (prevents loading on restart).
+*   `agentos plugins install [PATH]`: Install a new plugin from a local `.py` file path.
+
+Example:
+```bash
+agentos plugins disable weather_tool
+agentos plugins install ./my_custom_plugin.py
+```
 
 ---
 

@@ -83,6 +83,9 @@ agentos/
 - [x] **Phase 5** — Memory Infrastructure (COMPLETED)
 - [x] **Phase 7** — Evaluation Framework (COMPLETED)
 - [x] **Phase 8.1** — CLI Interface (COMPLETED)
+- [x] **Phase 8.2** — Python SDK (COMPLETED)
+- [x] **Phase 9.1** — Plugin Architecture (COMPLETED)
+- [x] **Phase 9.2** — Plugin Registry & Lifecycle (COMPLETED)
 
 ---
 
@@ -344,6 +347,13 @@ Provide full transparency into agent behavior via structured logging, traces, an
 
 **Key Files**: `backend/src/agentos/services/observability/audit.py`
 
+#### 6.4 Immutable Audit Logging (Compliance) ✅
+- [x] Implement append-only audit log for sensitive actions (e.g. file writes, API calls)
+- [x] Store audit logs in a tamper-evident/read-only storage layer
+- [x] Include user/agent attribution and timestamps for every entry
+
+**Key Files**: `backend/src/agentos/services/observability/audit.py`
+
 ### Deliverables
 - Every agent decision is logged and queryable
 - Prometheus-compatible metrics endpoint
@@ -413,23 +423,29 @@ Provide developer-friendly interfaces for interacting with AgentOS.
 
 ## 📋 Phase 9 — Plugin Ecosystem
 
-> **Status**: NOT STARTED | **Depends on**: Phases 2-4
+> **Status**: IN PROGRESS | **Depends on**: Phases 2-4
 
 ### Objective
 Enable extensibility through a plugin architecture.
 
 ### Sub-Phases
 
-#### 9.1 Plugin Architecture
+#### 9.1 Plugin Architecture ✅
 - [x] Define plugin interface (abstract base class)
 - [x] Implement plugin loader (file-based discovery)
 - [x] Support plugin types: tools, memory backends, evaluation metrics, agent templates
 
-#### 9.2 Plugin Registry
-- [ ] Implement plugin registration and lifecycle management
-- [ ] Add `agentos install-plugin` CLI command
+#### 9.2 Plugin Registry ✅
+- [x] Implement plugin registration and lifecycle management
+- [x] Add persistence (`registry.json`) for plugin states
+- [x] Add `agentos plugins enable/disable/install` CLI commands
+- [x] Expose REST API for plugin lifecycle management
 
-**Key Files**: `backend/src/agentos/core/plugins/`, `plugins/`, `backend/src/agentos/api/routes/plugins.py`, `backend/src/agentos/cli/cmds/plugins.py`
+**Key Files**: 
+- `backend/src/agentos/core/plugins/manager.py`
+- `backend/src/agentos/api/routes/plugins.py`
+- `backend/src/agentos/cli/cmds/plugins.py`
+- `backend/src/agentos/cli/client.py`
 
 ### Deliverables
 - Developers can drop a plugin into `plugins/` and it auto-registers

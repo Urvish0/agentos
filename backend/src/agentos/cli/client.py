@@ -43,7 +43,48 @@ class AgentOSClient:
         response.raise_for_status()
         return response.json().get("trace_url", "No trace URL available")
 
-    def list_plugins(self) -> List[Dict[str, Any]]:
+    # Plugin Methods (Synchronous versions for CLI)
+    def list_plugins_sync(self) -> List[Dict[str, Any]]:
         response = self.client.get("/plugins/")
         response.raise_for_status()
         return response.json()
+
+    def update_plugin_state_sync(self, name: str, enabled: bool) -> Dict[str, Any]:
+        response = self.client.patch(f"/plugins/{name}", params={"enabled": enabled})
+        response.raise_for_status()
+        return response.json()
+
+    def install_plugin_sync(self, source_path: str) -> Dict[str, Any]:
+        response = self.client.post("/plugins/install", params={"path": os.path.abspath(source_path)})
+        response.raise_for_status()
+        return response.json()
+
+    async def _get(self, path: str, params: Optional[Dict[str, Any]] = None) -> Any:
+        async with httpx.AsyncClient(base_url=self.base_url) as client:
+            response = await client.get(path, params=params)
+            response.raise_for_status()
+            return response.json()
+
+    async def _post(self, path: str, params: Optional[Dict[str, Any]] = None, json: Optional[Dict[str, Any]] = None) -> Any:
+        async with httpx.AsyncClient(base_url=self.base_url) as client:
+            response = await client.post(path, params=params, json=json)
+            response.raise_for_status()
+            return response.json()
+
+    async def _patch(self, path: str, params: Optional[Dict[str, Any]] = None, json: Optional[Dict[str, Any]] = None) -> Any:
+        async with httpx.AsyncClient(base_url=self.base_url) as client:
+            response = await client.patch(path, params=params, json=json)
+            response.raise_for_status()
+            return response.json()
+
+    async def list_plugins(self) -> List[Dict[str, Any]]:
+        """List all plugins."""
+        return await self._get("/plugins/")
+
+    async def update_plugin_state(self, name: str, enabled: bool) -> Dict[str, Any]:
+        """Update plugin enabled state."""
+        return await self._patch(f"/plugins/{name}", params={"enabled": enabled})
+
+    async def install_plugin(self, source_path: str) -> Dict[str, Any]:
+        """Install a plugin from a local path."""
+        return await self._post("/plugins/install", params={"path": os.path.abspath(source_path)})

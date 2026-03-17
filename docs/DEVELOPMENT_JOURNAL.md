@@ -402,3 +402,25 @@
 402: - **Decoupling**: Core AgentOS logic should not know about specific external tools. Plugins provide a clean boundary where integrations are maintained separately from the engine.
 403: - **Introspection**: A platform that supports plugins must provide tools to audit them. The new API and CLI commands ensure operators know exactly what's "under the hood" at any given time.
 404: - **Roadmap Alignment**: This phase lays the groundwork for Phase 9.2 (Unified Plugin Registry) and the eventual goal of an AgentOS Marketplace.
+---
+
+## 🔌 Phase 9.2: Plugin Registry & Lifecycle (Persistence & CLI)
+**Date:** March 17, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Implemented **Registry Persistence** using `registry.json` in the `plugins/` directory to store enabled/disabled states.
+- Enhanced the **Plugin Manager** with lifecycle methods: `enable_plugin`, `disable_plugin`, and `install_plugin_file`.
+- Developed a full suite of **Lifecycle APIs** (`PATCH /plugins/{name}`, `POST /plugins/install`) for remote management.
+- Integrated new **CLI Commands**:
+    - `agentos plugins enable [NAME]`
+    - `agentos plugins disable [NAME]`
+    - `agentos plugins install [PATH]`
+- Implemented **Pending Restart** detection to inform users when a plugin state change requires a server reload.
+- Standardized the **AgentOSClient** with synchronous helpers to support the Typer CLI perfectly.
+
+### Why we did it
+- **State Persistence**: A plugin system is only useful if it remembers your settings. Without a registry, users would have to manually "enable" their custom tools after every server restart.
+- **Remote Management**: As we move toward a cloud-native "Kubernetes for Agents," operators need to manage extensions via API/CLI without manual file access.
+- **Safety & Ease of Use**: The `install` command lowers the barrier for users to add third-party tools, while the `pending_restart` status provides UX clarity during the loading lifecycle.
+- **Architectural Symmetry**: By keeping the CLI, SDK, and API in sync for plugins, we ensure a unified developer experience regardless of the interface chosen.
