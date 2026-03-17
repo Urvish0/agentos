@@ -363,3 +363,22 @@
 - **Reproducibility (IaC)**: By using YAML-based registration, agents are treated as code. You can version them, share them, and deploy them to any environment using the same CLI command.
 - **Transparency**: The `tasks run` command uses a Rich polling loop to show exactly what's happening. The `trace` command bridges the gap between the terminal and deep observability (Jaeger), making debugging seamless.
 - **Automation Ready**: The CLI is designed to be called from bash scripts and CI/CD pipelines, fulfilling our vision of "Kubernetes for Agents" by providing a reliable administrative tool.
+
+---
+
+## 🐍 Phase 8.2: Python SDK (Programmatic Integration)
+**Date:** March 17, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Designed a **Resource-based Architecture** for the SDK, grouping logic under `agents`, `tasks`, and `memory`.
+- Implemented a **Dual-Mode Client** (`AgentOS`) that supports both synchronous (`httpx.Client`) and asynchronous (`httpx.AsyncClient`) workflows.
+- Created high-level developer helpers, most notably `client.tasks.run_and_wait()`, which abstracts away the polling and state check complexity.
+- Ensured full type hinting and Pydantic-friendly data handling across all resources.
+- Verified the SDK with a comprehensive test suite covering both sync and async execution paths.
+
+### Why we did it
+- **Developer Experience (DX)**: While a CLI is great for humans, application developers need a native library. The SDK allows them to integrate AgentOS into their web apps, data pipelines, or bots with just a few lines of Python.
+- **Future-Proofing (Async)**: Modern Python web frameworks (FastAPI, Starlette) are async-first. Providing native `async/await` support ensures the SDK is performant and doesn't block the event loop in high-throughput applications.
+- **Complexity Abstraction**: The `run_and_wait` pattern is the most common use case for an agent. By building it into the SDK, we save every developer from writing their own `while True: sleep(1)` polling code.
+- **Foundation for Phase 10**: The upcoming Next.js Dashboard and potential Python-based control planes will rely on this SDK as their primary communication layer.

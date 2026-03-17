@@ -399,12 +399,12 @@ Provide developer-friendly interfaces for interacting with AgentOS.
 
 **Key Files**: `backend/src/agentos/cli/`
 
-#### 8.2 Python SDK
-- [ ] Create a client library wrapping the REST API
-- [ ] Support: agent registration, task submission, memory operations
-- [ ] Publish-ready package structure
+#### 8.2 Python SDK ✅
+- [x] Create a client library wrapping the REST API
+- [x] Support: agent registration, task submission, memory operations
+- [x] Publish-ready package structure
 
-**Key Files**: `backend/src/agentos/sdk/python/`
+**Key Files**: `backend/src/agentos/sdk/`
 
 ### Deliverables
 - Developers can manage the full agent lifecycle from the terminal
