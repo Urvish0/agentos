@@ -460,9 +460,9 @@ Build a web dashboard for monitoring and managing agents visually.
 - [x] List all registered agents with metadata
 - [x] Agent detail page with full configuration display
 
-#### 10.2 Task Monitoring
-- [ ] Real-time task status dashboard
-- [ ] Task detail with reasoning trace visualization
+#### 10.2 Task Monitoring ✅
+- [x] Real-time task status dashboard
+- [x] Task detail view with logs and metrics visualization
 
 #### 10.3 Metrics & Observability
 - [ ] Token usage charts

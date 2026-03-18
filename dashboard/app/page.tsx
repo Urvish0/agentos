@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Agent, DashboardStats } from "@/lib/types";
-import { fetchAgents } from "@/lib/api";
+import { Agent, Task, DashboardStats } from "@/lib/types";
+import { fetchAgents, fetchTasks } from "@/lib/api";
 
 /**
  * Dashboard Home Page — Summary cards with quick stats.
@@ -17,15 +17,20 @@ export default function DashboardHome() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [taskCount, setTaskCount] = useState({ total: 0, running: 0 });
 
   useEffect(() => {
-    fetchAgents()
-      .then((agents: Agent[]) => {
+    Promise.all([fetchAgents(), fetchTasks()])
+      .then(([agents, tasks]: [Agent[], Task[]]) => {
         setStats({
           totalAgents: agents.length,
           activeAgents: agents.filter((a) => a.status === "active").length,
           inactiveAgents: agents.filter((a) => a.status === "inactive").length,
           archivedAgents: agents.filter((a) => a.status === "archived").length,
+        });
+        setTaskCount({
+          total: tasks.length,
+          running: tasks.filter((t) => t.status === "running").length,
         });
       })
       .catch((err: Error) => setError(err.message))
@@ -81,6 +86,29 @@ export default function DashboardHome() {
       ),
       color: "var(--status-archived)",
       href: "/agents",
+    },
+    {
+      label: "Total Tasks",
+      value: taskCount.total,
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="hsl(210, 90%, 65%)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 11l3 3L22 4" />
+          <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+      ),
+      color: "hsl(210, 90%, 65%)",
+      href: "/tasks",
+    },
+    {
+      label: "Running",
+      value: taskCount.running,
+      icon: (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="hsl(270, 50%, 65%)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="5 3 19 12 5 21 5 3" />
+        </svg>
+      ),
+      color: "hsl(270, 50%, 65%)",
+      href: "/tasks",
     },
   ];
 
@@ -228,6 +256,30 @@ export default function DashboardHome() {
             }}
           >
             View All Agents →
+          </Link>
+          <Link
+            href="/tasks"
+            style={{
+              padding: "10px 20px",
+              background: "var(--bg-tertiary)",
+              border: "1px solid var(--border-primary)",
+              borderRadius: "var(--radius-md)",
+              color: "var(--text-primary)",
+              fontSize: "13px",
+              fontWeight: 500,
+              textDecoration: "none",
+              transition: "all var(--transition-fast)",
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.borderColor = "var(--accent-cyan)";
+              e.currentTarget.style.background = "var(--accent-cyan-glow)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.borderColor = "var(--border-primary)";
+              e.currentTarget.style.background = "var(--bg-tertiary)";
+            }}
+          >
+            View All Tasks →
           </Link>
         </div>
       </div>

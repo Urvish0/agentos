@@ -448,3 +448,32 @@
 - **API Proxy via Rewrites**: Instead of hardcoding `http://localhost:8000` in the frontend, we use Next.js rewrites to proxy `/api/*`. This is cleaner (all requests go to the same origin), avoids CORS entirely, and makes the production deployment trivial — just change the rewrite destination.
 - **Graceful Degradation**: Every page handles three states: loading (shimmer skeletons), error (informative banners with instructions), and empty (CLI usage hints). This ensures the dashboard is useful even when the backend is offline, which is common during frontend-only development.
 
+---
+
+## 🚦 Phase 10.2: Task Monitoring (Dashboard)
+**Date:** March 18, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Expanded **TypeScript Types** in `lib/types.ts` with the `Task` and `TaskStats` interfaces to support the unit-of-work lifecycle.
+- Enhanced the **API Client** (`lib/api.ts`) with `fetchTasks`, `fetchTask`, `cancelTask`, and `fetchTaskTrace` utilities.
+- Developed the **TaskStatusBadge** component with distinct, high-contrast color configurations for all 7 lifecycle states (created, queued, running, paused, completed, failed, cancelled).
+- Built the **Task List Page** (`app/tasks/page.tsx`) with:
+    - **Real-time Monitoring**: 5-second auto-refresh interval.
+    - **Quick Filters**: Status-based pill filters (Running, Queued, Completed, etc.).
+    - **Mini Stats**: High-level counters for core task states.
+    - **Data Table**: Displays input, status, agent ID, model, token usage, execution duration, and creation time.
+- Created the **Task Detail Page** (`app/tasks/[id]/page.tsx`) with:
+    - **Live Updates**: Faster 3-second auto-refresh while tasks are in non-terminal states.
+    - **Control Actions**: "Cancel Task" button that integrates with the backend termination logic.
+    - **Execution Metrics**: 3-card grid for metrics (Model, Duration, Tokens), Lifecycle (Retries, IDs), and Timestamps.
+    - **Output/Error Rendering**: Pre-formatted blocks for viewing raw agent logs and failure stack traces.
+- Integrated **Task Summary Cards** into the Dashboard Home to provide an at-a-glance view of system load.
+
+### Why we did it
+- **Observability by Default**: As a platform for "Kubernetes for AI Agents," the ability to monitor the execution plane is non-negotiable. Real-time task monitoring provides the visibility needed to debug agent behavior and optimize performance.
+- **State Machine Visibility**: The 7-state task lifecycle can be complex. By using a standardized `TaskStatusBadge` across the dashboard, we provide consistent visual cues that help users quickly identify bottlenecks (e.g., tasks stuck in `queued`) or failures (`failed`).
+- **Interactive Controls**: Monitoring isn't just about watching; it's about control. Integrating the "Cancel Task" button directly into the detail view allows developers to stop runaway or stuck agents without reaching for the CLI.
+- **Hybrid Refresh Strategy**: We used a tiered auto-refresh approach (5s for the list, 3s for details). This balances the need for real-time visibility with API efficiency, ensuring that the page a user is actively focused on updates faster.
+
+
