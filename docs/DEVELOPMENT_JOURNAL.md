@@ -476,4 +476,27 @@
 - **Interactive Controls**: Monitoring isn't just about watching; it's about control. Integrating the "Cancel Task" button directly into the detail view allows developers to stop runaway or stuck agents without reaching for the CLI.
 - **Hybrid Refresh Strategy**: We used a tiered auto-refresh approach (5s for the list, 3s for details). This balances the need for real-time visibility with API efficiency, ensuring that the page a user is actively focused on updates faster.
 
+---
+
+## 📊 Phase 10.3: Metrics & Observability (Dashboard)
+**Date:** March 18, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Implemented a **Backend Metrics Service** (`metrics.py`) that uses SQLModel aggregations (`func.sum`, `func.avg`, `func.count`) to calculate system-wide stats directly in the database.
+- Created a **Metrics Summary API** (`GET /api/metrics/summary`) providing total tokens, average latency (ms), task success rates (%), and token usage breakdown by AI model.
+- Built the **Metrics Dashboard Page** (`app/metrics/page.tsx`) with a high-fidelity UI:
+    - **Premium Stat Cards**: 4-card grid for core KPIs with custom SVG icons and background glow effects.
+    - **Token Usage Bar Chart**: A dynamic horizontal bar chart showing consumption per model (e.g., GPT-4o vs Claude 3.5), sorted by volume.
+    - **Success Rate Gauge**: A custom SVG-based circular progress gauge visualizing the "Task Health" of the entire system.
+- Refined **Auto-Refresh Logic**: The metrics page updates every 10 seconds to keep the overhead low while providing near-real-time observability.
+- Standardized **Observability Types** in `lib/types.ts` to ensure type safety across the metrics pipeline.
+
+### Why we did it
+- **Data-Driven Decisions**: Developers need to know which models are costing the most and which agents are the slowest. Dedicated metrics visualizations turn raw task logs into actionable insights.
+- **Backend vs. Frontend Aggregation**: While we could have calculated metrics on the frontend from the task list, a backend aggregation is significantly more scalable. As the system grows to thousands of tasks, the database can calculate sums and averages in milliseconds, whereas fetching all tasks to the client would crash the browser.
+- **Visual Hierarchy**: We used a mix of "Big Number" cards for immediate impact and "Bar/Gauge" charts for proportional context. This follows the industry standard for NOC (Network Operations Center) dashboards.
+- **Performance Budgeting**: By exposing latency and token usage so prominently, we encourage developers to optimize their system prompts and agent configurations early in the development cycle.
+
+
 
