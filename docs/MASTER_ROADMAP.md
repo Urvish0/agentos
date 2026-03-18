@@ -456,9 +456,9 @@ Build a web dashboard for monitoring and managing agents visually.
 
 ### Sub-Phases
 
-#### 10.1 Agent Registry View
-- [ ] List all registered agents with metadata
-- [ ] Agent detail page with version history
+#### 10.1 Agent Registry View ✅
+- [x] List all registered agents with metadata
+- [x] Agent detail page with full configuration display
 
 #### 10.2 Task Monitoring
 - [ ] Real-time task status dashboard

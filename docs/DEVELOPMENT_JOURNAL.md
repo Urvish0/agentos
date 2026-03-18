@@ -424,3 +424,27 @@
 - **Remote Management**: As we move toward a cloud-native "Kubernetes for Agents," operators need to manage extensions via API/CLI without manual file access.
 - **Safety & Ease of Use**: The `install` command lowers the barrier for users to add third-party tools, while the `pending_restart` status provides UX clarity during the loading lifecycle.
 - **Architectural Symmetry**: By keeping the CLI, SDK, and API in sync for plugins, we ensure a unified developer experience regardless of the interface chosen.
+
+---
+
+## 🖥️ Phase 10.1: Agent Registry View (Dashboard)
+**Date:** March 18, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Designed a **Premium Dark-Mode Design System** in `globals.css` using HSL color tokens, glassmorphism effects, micro-animations (fade-in, stagger, pulse), and shimmer loading skeletons.
+- Built a **Persistent Sidebar** (`Sidebar.tsx`) with AgentOS branding (gradient logo), navigation links (Dashboard, Agents, Tasks, Metrics, Plugins), active-link highlighting via `usePathname()`, and a live system status indicator.
+- Implemented a **Dashboard Home Page** (`app/page.tsx`) with four stat cards (Total Agents, Active, Inactive, Archived) that fetch data from the backend API, plus error banners for connection failures and Quick Action links.
+- Created the **Agent List Page** (`app/agents/page.tsx`) featuring a real-time search/filter bar, a styled data table with columns (Name, Model, Version, Status, Created), and three distinct states: loading skeletons, empty state with CLI instructions, and error state.
+- Built the **Agent Detail Page** (`app/agents/[id]/page.tsx`) with a gradient avatar, status badge, and a card grid showing Configuration (model, temperature, agent ID), Tools (parsed from JSON), Timestamps, and the full System Prompt in a code block.
+- Created a **StatusBadge** component with color-coded backgrounds (green/amber/gray) and animated pulse dots for active/inactive/archived states.
+- Added a centralized **API Client** (`lib/api.ts`) and **TypeScript Interfaces** (`lib/types.ts`) matching the backend's `AgentResponse` schema.
+- Configured **Next.js Rewrites** in `next.config.ts` to proxy `/api/*` requests to `http://localhost:8000/*`, eliminating CORS issues during development.
+
+### Why we did it
+- **Premium First Impression**: The dashboard is the most visible part of AgentOS. A polished, dark-mode design with subtle animations and glassmorphism effects sets the standard for a professional-grade platform. Users should feel like they're using a premium tool, not a prototype.
+- **Sidebar Navigation Pattern**: Unlike top-nav layouts, a persistent sidebar provides constant access to all sections without losing context. This is the standard for modern dashboards (Vercel, Linear, Grafana) and scales well as we add more pages in Phases 10.2–10.4.
+- **Client-Side Data Fetching**: We chose `"use client"` with `useEffect` hooks instead of server components for data-fetching pages. This approach is simpler for real-time data that changes frequently, and it gracefully handles loading/error states on the client without blocking the initial page render.
+- **API Proxy via Rewrites**: Instead of hardcoding `http://localhost:8000` in the frontend, we use Next.js rewrites to proxy `/api/*`. This is cleaner (all requests go to the same origin), avoids CORS entirely, and makes the production deployment trivial — just change the rewrite destination.
+- **Graceful Degradation**: Every page handles three states: loading (shimmer skeletons), error (informative banners with instructions), and empty (CLI usage hints). This ensures the dashboard is useful even when the backend is offline, which is common during frontend-only development.
+

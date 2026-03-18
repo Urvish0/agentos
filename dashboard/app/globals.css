@@ -1,26 +1,217 @@
 @import "tailwindcss";
 
+/* ================================================================
+   AgentOS Dashboard — Design System
+   Premium dark-mode-first with HSL color tokens
+   ================================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* ---- Background Layers ---- */
+  --bg-primary: hsl(220, 20%, 6%);       /* Deep charcoal */
+  --bg-secondary: hsl(220, 18%, 9%);     /* Sidebar / cards */
+  --bg-tertiary: hsl(220, 16%, 12%);     /* Elevated surfaces */
+  --bg-hover: hsl(220, 16%, 15%);        /* Interactive hover */
+  --bg-active: hsl(220, 16%, 18%);       /* Active/pressed */
+
+  /* ---- Borders ---- */
+  --border-primary: hsl(220, 14%, 16%);
+  --border-secondary: hsl(220, 14%, 22%);
+  --border-accent: hsl(170, 70%, 40%);
+
+  /* ---- Text ---- */
+  --text-primary: hsl(0, 0%, 95%);
+  --text-secondary: hsl(220, 10%, 65%);
+  --text-tertiary: hsl(220, 10%, 45%);
+  --text-accent: hsl(170, 70%, 55%);
+  --text-link: hsl(210, 90%, 65%);
+
+  /* ---- Accent Colors ---- */
+  --accent-cyan: hsl(170, 70%, 45%);
+  --accent-cyan-glow: hsl(170, 70%, 45% / 0.15);
+  --accent-emerald: hsl(160, 60%, 45%);
+  --accent-amber: hsl(38, 90%, 55%);
+  --accent-red: hsl(0, 70%, 55%);
+
+  /* ---- Status Colors ---- */
+  --status-active: hsl(160, 70%, 45%);
+  --status-inactive: hsl(38, 80%, 55%);
+  --status-archived: hsl(220, 10%, 45%);
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 2px hsl(0 0% 0% / 0.3);
+  --shadow-md: 0 4px 12px hsl(0 0% 0% / 0.4);
+  --shadow-lg: 0 8px 30px hsl(0 0% 0% / 0.5);
+  --shadow-glow: 0 0 20px hsl(170, 70%, 45% / 0.1);
+
+  /* ---- Layout ---- */
+  --sidebar-width: 260px;
+  --header-height: 64px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 20px;
+
+  /* ---- Transitions ---- */
+  --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-background: var(--bg-primary);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-inter);
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ================================================================
+   Global Styles
+   ================================================================ */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ---- Scrollbar ---- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: hsl(220, 14%, 25%);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(220, 14%, 35%);
+}
+
+/* ================================================================
+   Utility Classes
+   ================================================================ */
+
+/* Card surface */
+.card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.card:hover {
+  border-color: var(--border-secondary);
+  box-shadow: var(--shadow-md);
+}
+
+/* Glassmorphism surface */
+.glass {
+  background: hsl(220, 18%, 9% / 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-lg);
+}
+
+/* Accent glow effect */
+.glow-accent {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Status badge base */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+}
+.badge-active {
+  background: hsl(160, 70%, 45% / 0.12);
+  color: var(--status-active);
+  border: 1px solid hsl(160, 70%, 45% / 0.25);
+}
+.badge-inactive {
+  background: hsl(38, 80%, 55% / 0.12);
+  color: var(--status-inactive);
+  border: 1px solid hsl(38, 80%, 55% / 0.25);
+}
+.badge-archived {
+  background: hsl(220, 10%, 45% / 0.12);
+  color: var(--status-archived);
+  border: 1px solid hsl(220, 10%, 45% / 0.25);
+}
+
+/* Pulse dot animation */
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+}
+.pulse-dot-active { background: var(--status-active); }
+.pulse-dot-inactive { background: var(--status-inactive); }
+.pulse-dot-archived { background: var(--status-archived); }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+/* Staggered children animation */
+.stagger-children > * {
+  opacity: 0;
+  animation: fadeIn 0.4s ease-out forwards;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0.05s; }
+.stagger-children > *:nth-child(2) { animation-delay: 0.1s; }
+.stagger-children > *:nth-child(3) { animation-delay: 0.15s; }
+.stagger-children > *:nth-child(4) { animation-delay: 0.2s; }
+.stagger-children > *:nth-child(5) { animation-delay: 0.25s; }
+.stagger-children > *:nth-child(6) { animation-delay: 0.3s; }
+.stagger-children > *:nth-child(7) { animation-delay: 0.35s; }
+.stagger-children > *:nth-child(8) { animation-delay: 0.4s; }
+.stagger-children > *:nth-child(9) { animation-delay: 0.45s; }
+.stagger-children > *:nth-child(10) { animation-delay: 0.5s; }
+
+/* Shimmer loading skeleton */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--bg-tertiary) 25%,
+    var(--bg-hover) 50%,
+    var(--bg-tertiary) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
