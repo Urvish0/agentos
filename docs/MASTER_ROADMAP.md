@@ -469,10 +469,10 @@ Build a web dashboard for monitoring and managing agents visually.
 - [x] Task success rate visualization dashboardilure rate graphs
 - [ ] System health indicators
 
-#### 10.4 Visual Workflow Designer (Drag-and-Drop)
-- [ ] Implement interactive canvas for multi-agent composition
-- [ ] Drag-and-drop agent/tool blocks to define pipelines
-- [ ] Generate YAML/JSON workflow definitions from visual graph
+#### 10.4 Visual Workflow Designer ✅
+- [x] Interactive canvas for multi-agent composition
+- [x] Drag-and-drop agent/tool blocks for pipelines
+- [x] Export workflow configurations (JSON)
 
 **Key Files**: `dashboard/components/designer/`
 

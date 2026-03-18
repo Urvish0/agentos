@@ -498,5 +498,30 @@
 - **Visual Hierarchy**: We used a mix of "Big Number" cards for immediate impact and "Bar/Gauge" charts for proportional context. This follows the industry standard for NOC (Network Operations Center) dashboards.
 - **Performance Budgeting**: By exposing latency and token usage so prominently, we encourage developers to optimize their system prompts and agent configurations early in the development cycle.
 
+---
+
+## 🎨 Phase 10.4: Visual Workflow Designer (Dashboard)
+**Date:** March 18, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Engineered a **Custom Interactive Canvas** (`WorkflowCanvas.tsx`) from the ground up:
+    - **SVG Bezier Edges**: Real-time rendering of connection lines using cubic bezier curves with dynamic arrowhead orientations.
+    - **Drag-to-Connect**: Implemented specialized "Ports" (input/output dots) on every node that allow users to draw edges by dragging between them.
+    - **Snap-to-Grid Navigation**: Nodes align to a 10px grid for a clean, professional aesthetic.
+    - **Advanced Panning**: Added support for shifting the entire coordinate space (Shift+Drag or Middle-Click), essential for complex multi-agent graphs.
+- Developed the **Designer Workbench** (`app/designer/page.tsx`):
+    - **Component Library**: Includes base blocks (Triggers, Conditions, Endpoints) and dynamically loads **Registered Agents** as draggable components.
+    - **Export Logic**: One-click generation of `workflow.json` capturing the full graph state (nodes, coordinates, agent mappings, and edges).
+    - **Visual Feedback**: Nodes feature HSL-colored status glows (Cyan for Agents, Emerald for Triggers) and drop shadows for depth.
+- Integrated the designer into the **Main Sidebar** with a dedicated icon and active-state tracking.
+
+### Why we did it
+- **Low-Dependency Architecture**: By building a custom SVG canvas instead of using a heavy library (like React Flow), we maintained full control over the "AgentOS Premium" design language and kept the bundle size minimal.
+- **Mental Model Alignment**: AI development is increasingly graph-oriented (LangGraph, CrewAI). Providing a visual representation of the task graph directly in the dashboard helps developers reason about multi-agent orchestration.
+- **Accessibility & Utility**: Exporting to JSON makes the designer a practical tool for generating configuration files that can be used directly with the AgentOS CLI or backend.
+- **Extensibility**: The port-based connection logic is designed to be easily expanded to support typed ports (e.g., input requirements vs output schemas) in future phases.
+
+
 
 
