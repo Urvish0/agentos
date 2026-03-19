@@ -141,29 +141,84 @@ def cancel_task(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.get("/{task_id}/trace")
-def get_task_trace(
-    task_id: str,
-    session: Session = Depends(get_session),
-):
+# ---- Log Streaming (SSE) ----
+
+import asyncio
+from fastapi.responses import StreamingResponse
+import json
+
+@router.get("/{id}/logs/stream")
+async def stream_task_logs(id: str, session: Session = Depends(get_session)):
+    """
+    Stream task progress and logs via SSE.
+    Polls DB every 0.5s for fast feedback on quick-completing tasks.
+    """
+    async def log_generator():
+        last_status = ""
+        last_output = ""
+        polls = 0
+        max_polls = 600  # 5 minutes max (600 * 0.5s)
+        
+        while polls < max_polls:
+            polls += 1
+            try:
+                from agentos.core.manager.database import engine
+                from sqlmodel import Session as DBSession
+                with DBSession(engine) as s:
+                    from agentos.core.orchestrator.service import get_task as g_task
+                    task = g_task(s, id)
+                    if not task:
+                        yield f"data: {json.dumps({'error': 'Task not found'})}\n\n"
+                        break
+                    
+                    current_status = task.status or ""
+                    current_output = task.output or ""
+                    current_error = task.error or ""
+                    ts = str(task.updated_at) if task.updated_at else None
+                    
+                    # Emit status changes
+                    if current_status != last_status:
+                        last_status = current_status
+                        yield f"data: {json.dumps({'status': current_status, 'timestamp': ts})}\n\n"
+                    
+                    # Emit output changes (new or updated output)
+                    if current_output and current_output != last_output:
+                        last_output = current_output
+                        yield f"data: {json.dumps({'output': current_output, 'timestamp': ts})}\n\n"
+                    
+                    # Emit errors
+                    if current_error:
+                        yield f"data: {json.dumps({'error': current_error, 'timestamp': ts})}\n\n"
+                    
+                    # If terminal state, send final output + terminate
+                    if current_status in ("completed", "failed", "cancelled"):
+                        # Small delay to ensure client processes the output event
+                        await asyncio.sleep(0.3)
+                        yield f"data: {json.dumps({'info': 'Session terminated'})}\n\n"
+                        break
+                        
+            except Exception as e:
+                logger.error("SSE generator error", error=str(e), task_id=id)
+                yield f"data: {json.dumps({'error': f'Stream error: {str(e)}'})}\n\n"
+                break
+            
+            await asyncio.sleep(0.5)  # Poll every 0.5s for fast feedback
+            
+    return StreamingResponse(log_generator(), media_type="text/event-stream")
+
+
+@router.get("/{id}/trace")
+def get_task_trace(id: str, session: Session = Depends(get_session)):
     """
     Get the OpenTelemetry trace ID and UI URL for a task.
     """
-    task = service.get_task(session, task_id)
+    task = service.get_task(session, id)
     if not task:
-        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found")
-        
+        raise HTTPException(status_code=404, detail="Task not found")
     if not task.trace_id:
-        raise HTTPException(
-            status_code=404, 
-            detail=f"No trace found for task '{task_id}'. Task may not have run yet, or tracing was disabled."
-        )
-        
-    # Standard Jaeger UI port on localhost for development visualization
-    trace_url = f"http://localhost:16686/trace/{task.trace_id}"
-    
+        raise HTTPException(status_code=400, detail="No trace available for this task")
     return {
-        "task_id": task_id,
+        "task_id": id,
         "trace_id": task.trace_id,
-        "trace_url": trace_url
+        "trace_url": f"http://localhost:16686/trace/{task.trace_id}"
     }

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Agent } from "@/lib/types";
 import { fetchAgents } from "@/lib/api";
 import StatusBadge from "@/components/StatusBadge";
+import RegisterAgentModal from "@/components/RegisterAgentModal";
 
 /**
  * Agent List Page — Displays all registered agents with search/filter.
@@ -14,12 +15,18 @@ export default function AgentsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isRegisterModalOpen, setIsRegisterModalOpen] = useState(false);
 
-  useEffect(() => {
+  const loadAgents = () => {
+    setLoading(true);
     fetchAgents()
       .then(setAgents)
       .catch((err: Error) => setError(err.message))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadAgents();
   }, []);
 
   const filteredAgents = agents.filter(
@@ -78,6 +85,30 @@ export default function AgentsPage() {
               : `${agents.length} agent${agents.length !== 1 ? "s" : ""} registered`}
           </p>
         </div>
+        <button
+          onClick={() => setIsRegisterModalOpen(true)}
+          style={{
+            padding: "10px 18px",
+            background: "var(--accent-cyan)",
+            color: "var(--bg-primary)",
+            border: "none",
+            borderRadius: "var(--radius-md)",
+            fontSize: "14px",
+            fontWeight: 600,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            transition: "opacity var(--transition-fast)",
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
+          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
+          Register Agent
+        </button>
       </div>
 
       {/* Search Bar */}
@@ -398,6 +429,13 @@ export default function AgentsPage() {
             </tbody>
           </table>
         </div>
+      )}
+      {isRegisterModalOpen && (
+        <RegisterAgentModal
+          isOpen={isRegisterModalOpen}
+          onClose={() => setIsRegisterModalOpen(false)}
+          onSuccess={() => loadAgents()}
+        />
       )}
     </div>
   );

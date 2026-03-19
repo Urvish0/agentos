@@ -79,13 +79,17 @@ def run_agent_task(self, task_id: str) -> Dict[str, Any]:
             from agentos.core.tools.mcp_manager import mcp_manager
             from agentos.core.runtime.config import config
             
+            # Hot-reload: sync plugin state from disk before each task
+            from agentos.core.plugins.manager import plugin_manager
+            plugin_manager.sync_with_registry()
+            
             loop = asyncio.get_event_loop()
             
             if config.mcp_servers_config:
                 loop.run_until_complete(mcp_manager.initialize_from_config(config.mcp_servers_config))
 
             runtime = AgentRuntime(
-                model=agent.model,
+                model=db_task.model or agent.model,
                 system_prompt=agent.system_prompt,
                 tools=tools_list
             )

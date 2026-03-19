@@ -146,6 +146,7 @@ def create_app() -> FastAPI:
     from agentos.api.routes.evaluations import router as eval_router
     from agentos.api.routes.plugins import router as plugins_router
     from agentos.api.routes.metrics import router as metrics_router
+    from agentos.api.routes.console import router as console_router
     
     app.include_router(agents_router)
     app.include_router(tasks_router)
@@ -153,6 +154,7 @@ def create_app() -> FastAPI:
     app.include_router(eval_router)
     app.include_router(plugins_router)
     app.include_router(metrics_router)
+    app.include_router(console_router)
 
     # ------------------------------------------------------------------
     # Health, Info & Metrics

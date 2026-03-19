@@ -7,13 +7,15 @@ import shutil
 from typing import Dict, List, Set, Optional, Type, Any
 import logging
 import structlog
-from .base import BasePlugin, PluginType
+from .base import BasePlugin, PluginType, ToolPlugin
 
 logger = logging.getLogger(__name__)
 
 class PluginManager:
     """
     Manages the discovery, loading, and lifecycle of AgentOS plugins.
+    Supports hot-reloading: plugins can be enabled/disabled at runtime
+    without restarting the backend.
     """
 
     def __init__(self):
@@ -21,6 +23,7 @@ class PluginManager:
         self._loaded_paths: Set[str] = set()
         self.registry_path: Optional[str] = None
         self._registry_data: Dict[str, bool] = {}  # name -> enabled state
+        self._plugin_file_map: Dict[str, str] = {}  # plugin_name -> file_path
 
     def discover_and_load(self, directory: str):
         """Discover and load all plugins from a directory."""
@@ -45,9 +48,6 @@ class PluginManager:
 
     def load_plugin(self, file_path: str):
         """Dynamically load classes from a python file that inherit from BasePlugin."""
-        if file_path in self._loaded_paths:
-            return
-        
         module_name = os.path.splitext(os.path.basename(file_path))[0]
         
         try:
@@ -68,11 +68,13 @@ class PluginManager:
                     not inspect.isabstract(obj)):
                     
                     instance = obj()
+                    # Track which file provides which plugin
+                    self._plugin_file_map[instance.name] = file_path
                     
                     # Check if enabled in registry
                     is_enabled = self._registry_data.get(instance.name, True)
                     if not is_enabled:
-                        print(f"DEBUG: Plugin {instance.name} is disabled. Skipping registration.")
+                        logger.info(f"Plugin {instance.name} is disabled. Skipping registration.")
                         continue
 
                     self.register_plugin(instance)
@@ -89,10 +91,35 @@ class PluginManager:
             logger.error(f"Failed to load plugin from {file_path}: {e}")
 
     def register_plugin(self, plugin: BasePlugin):
-        """Manually register a plugin instance."""
+        """Manually register a plugin instance and auto-register tools."""
         self.plugins[plugin.name] = plugin
         plugin.on_load()
         logger.info(f"Registered {plugin.plugin_type.value} plugin: {plugin.name} v{plugin.version}")
+        
+        # Auto-register ToolPlugins with the global ToolRegistry
+        if isinstance(plugin, ToolPlugin):
+            self._register_tool_plugin(plugin)
+
+    def _register_tool_plugin(self, plugin: ToolPlugin):
+        """Bridge a ToolPlugin into the global ToolRegistry."""
+        from agentos.core.tools.registry import registry as tool_registry
+        schema = plugin.get_schema()
+        tool_name = schema.get("name", plugin.name)
+        tool_registry.register_tool(
+            name=tool_name,
+            description=schema.get("description", f"Plugin tool: {plugin.name}"),
+            handler=plugin.execute,
+            args_schema=None  # Schema is already in OpenAI format
+        )
+        logger.info(f"Hot-registered tool '{tool_name}' from plugin '{plugin.name}'")
+
+    def _unregister_tool_plugin(self, tool_name: str):
+        """Remove a ToolPlugin's tool from the global ToolRegistry."""
+        from agentos.core.tools.registry import registry as tool_registry
+        if tool_name in tool_registry._tools:
+            del tool_registry._tools[tool_name]
+            del tool_registry._handlers[tool_name]
+            logger.info(f"Hot-unregistered tool '{tool_name}' from ToolRegistry")
 
     def get_plugins_by_type(self, plugin_type: PluginType) -> List[BasePlugin]:
         """Return all loaded plugins of a specific type."""
@@ -118,23 +145,66 @@ class PluginManager:
                 logger.error(f"Failed to save plugin registry: {e}")
 
     def enable_plugin(self, name: str) -> bool:
-        """Enable a plugin and save state."""
+        """Enable a plugin and immediately hot-load it."""
         self._registry_data[name] = True
         self._save_registry()
         
-        # Try to reload plugins to find the newly enabled one
-        if self.registry_path:
+        # Hot-reload: find the file for this plugin and re-load it
+        file_path = self._plugin_file_map.get(name)
+        if file_path:
+            self._loaded_paths.discard(file_path)
+            self.load_plugin(file_path)
+        elif self.registry_path:
+            # Fallback: full re-scan
             plugins_dir = os.path.dirname(self.registry_path)
+            self._loaded_paths.clear()
             self.discover_and_load(plugins_dir)
         return True
 
     def disable_plugin(self, name: str) -> bool:
-        """Disable a plugin and save state."""
+        """Disable a plugin and immediately unregister its tools."""
         self._registry_data[name] = False
         self._save_registry()
+        
+        # Unregister tools provided by this plugin
         if name in self.plugins:
+            plugin = self.plugins[name]
+            if isinstance(plugin, ToolPlugin):
+                schema = plugin.get_schema()
+                tool_name = schema.get("name", name)
+                self._unregister_tool_plugin(tool_name)
             del self.plugins[name]
         return True
+
+    def sync_with_registry(self):
+        """
+        Re-read registry.json from disk and reconcile in-memory state.
+        Call this at the start of every Celery task to pick up changes
+        made via the Dashboard API without a backend restart.
+        """
+        if not self.registry_path:
+            return
+            
+        old_registry = dict(self._registry_data)
+        self._load_registry()
+        
+        for name, enabled in self._registry_data.items():
+            was_enabled = old_registry.get(name)
+            if enabled and not was_enabled:
+                # Newly enabled
+                file_path = self._plugin_file_map.get(name)
+                if file_path:
+                    self._loaded_paths.discard(file_path)
+                    self.load_plugin(file_path)
+            elif not enabled and was_enabled:
+                # Newly disabled
+                if name in self.plugins:
+                    plugin = self.plugins[name]
+                    if isinstance(plugin, ToolPlugin):
+                        schema = plugin.get_schema()
+                        tool_name = schema.get("name", name)
+                        self._unregister_tool_plugin(tool_name)
+                    del self.plugins[name]
 
     def install_plugin_file(self, source_path: str) -> str:
         """Install a plugin file by copying it to the plugins directory."""

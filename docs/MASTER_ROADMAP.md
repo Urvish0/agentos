@@ -449,7 +449,7 @@ Enable extensibility through a plugin architecture.
 
 ## 📋 Phase 10 — Dashboard & Web UI
 
-> **Status**: NOT STARTED | **Depends on**: Phases 2-6
+> **Status**: COMPLETED ✅ | **Depends on**: All previous phases
 
 ### Objective
 Build a web dashboard for monitoring and managing agents visually.
@@ -466,15 +466,37 @@ Build a web dashboard for monitoring and managing agents visually.
 
 #### 10.3 Metrics & Observability ✅
 - [x] Token usage charts & Latency tracking
-- [x] Task success rate visualization dashboardilure rate graphs
-- [ ] System health indicators
+- [x] Task success/failure rate graphs
+- [x] System health indicators
 
 #### 10.4 Visual Workflow Designer ✅
 - [x] Interactive canvas for multi-agent composition
 - [x] Drag-and-drop agent/tool blocks for pipelines
 - [x] Export workflow configurations (JSON)
 
-**Key Files**: `dashboard/components/designer/`
+#### 10.5 Agent Command Center ✅
+- [x] **Agent Console**: Real-time log streaming (SSE) and interactive shell.
+- [x] **Dynamic model selection**: Dropdown for switching between GPT, Claude, and local LLaMA/Ollama.
+- [x] **Custom Model Registration**: UI for adding custom model names, providers, and API keys.
+- [x] **Log Streaming**: Live terminal output for agent "thinking" process.
+
+#### 10.6 Plugin Management UI ✅
+- [x] **Plugin Gallery**: Visual grid of all discovered/registered plugins.
+- [x] **Lifecycle Controls**: Enable or disable plugins via the UI.
+- [x] **Installation Interface**: Register new plugins directly from the dashboard.
+
+#### 10.7 Dashboard Excellence (UX Polish) ✅
+- [x] **Agent Registration UI**: Integrated modal for creating/registering new agents from the web UI.
+- [x] **Session History Sidebar**: Refactored Task Attachment into a persistent, scrollable sidebar showing status and prompt snippets.
+- [x] **Model Priority Fix**: Fixed task execution logic to correctly prioritize Console-selected models over Agent defaults.
+- [x] **Comprehensive Test Plan**: Created `test_plan_phase_10.md` for full system verification.
+
+
+#### 10.8 Dynamic Plugin Hot-Reload ✅
+- [x] **`sync_with_registry()`**: Re-reads `registry.json` from disk and reconciles in-memory state.
+- [x] **ToolPlugin Auto-Registration**: Bridges `ToolPlugin` instances into the global `ToolRegistry` on enable.
+- [x] **ToolPlugin Auto-Unregistration**: Removes tools from `ToolRegistry` on disable.
+- [x] **Worker-side Synchronization**: Celery workers call `sync_with_registry()` before each task.
 
 ---
 
