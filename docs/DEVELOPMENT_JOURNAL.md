@@ -522,6 +522,77 @@
 - **Accessibility & Utility**: Exporting to JSON makes the designer a practical tool for generating configuration files that can be used directly with the AgentOS CLI or backend.
 - **Extensibility**: The port-based connection logic is designed to be easily expanded to support typed ports (e.g., input requirements vs output schemas) in future phases.
 
+---
 
+## 🐚 Phase 10.5: Agent Command Center (Dashboard)
+**Date:** March 19, 2026
+**Status:** ✅ Completed
 
+### What we did
+- Developed the **Agent Console** (`app/console/page.tsx`), a high-fidelity interactive shell for real-time agent communication.
+- Engineered a **Real-Time SSE Log Stream**:
+    - Rewrote the backend stream generator with a **0.5s polling interval** to eliminate latency in fast-completing tasks.
+    - Implemented **separate event types** (STATUS, OUTPUT, ERROR, INFO) for granular client-side rendering.
+- Built a **Dynamic Model Management System**:
+    - Added a **Custom Model Registration UI** with persistent storage in `llm_models.py` (SQLModel).
+    - Implemented a prioritized model selection logic: `Console Selection > Agent Configuration > System Default`.
+- Created the **Terminal Component** (`Terminal.tsx`) with specialized **Log Colorization**:
+    - `[USER]` = Cyan (Bold), `[SYSTEM]` = Purple, `[STATUS]` = Yellow, `[OUTPUT]` = White.
 
+### Why we did it
+- **Full Traceability**: A simple "chat" isn't enough for AI agents. Developers need to see the "thinking" (logs) and the "result" (output) separately to debug orchestration logic.
+- **Polling Speed vs. Cost**: We initially used 2s polling, but Groq is so fast that it often finished before the second poll, missing the output. 0.5s represents the "goldilocks zone" for fast agents without overloading the DB.
+- **Model Agnostic Console**: By allowing users to override model selections on-the-fly, we turned the dashboard into a testing playground for comparing model performance on the same prompt.
+- **Visual Feedback**: The specialized colorization in the Terminal isn't just aesthetic; it allows the eye to instantly filter noise (status logs) from signal (assistant output).
+
+---
+
+## 🔌 Phase 10.6: Plugin Management UI
+**Date:** March 19, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Created the **Plugin Gallery** (`app/plugins/page.tsx`), providing a visual grid of all available `ToolPlugins`.
+- Implemented **Lifecycle Switches** allowing one-click enabling/disabling of plugins.
+- Updated the **Plugin Registry** (`registry.json`) to persist state across reboots.
+
+### Why we did it
+- **Modular Control**: As the tool ecosystem grows, agents shouldn't always have access to everything. A UI to prune available tools reduces "tool confusion" for smaller LLMs.
+- **Transparency**: Making it clear which plugins are active vs. discovery helps developers understand why an agent might be failing to use a specific capability.
+
+---
+
+## ✨ Phase 10.7: Dashboard Excellence (UX Polish)
+**Date:** March 19, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Built the **Agent Registration UI** (`RegisterAgentModal.tsx`): Users can now create entire agents (Model, Prompt, Identity) from the dashboard without touching the CLI or database directly.
+- Refactor: **Session History Sidebar**:
+    - Moved task attachments into a persistent scrollable sidebar with color-coded status badges and prompt previews.
+    - Added **Auto-Refresh Logic**: The task list now refreshes immediately when a new task is created and when a task completes.
+- Fixed **5 Critical Streaming Bugs**:
+    - Resolved the `datetime` serialization crash in the SSE generator.
+    - Eliminated "false positive" connection errors by checking `readyState` on stream close.
+    - Removed output truncation (`.slice(-200)`) to display full long-form responses.
+
+### Why we did it
+- **Reduced Friction**: Forcing users to CLI/Manual DB entries to create agents is a barrier. A GUI modal makes "AgentOS" feel like a mature platform.
+- **Information Density**: The sidebar provides historical context without cluttering the main conversation window, following the "Layout-Density" principle for professional tools.
+- **Reliability (The 5 Fixes)**: Real-time streaming is notoriously flaky. By fixing the race conditions and serialization bugs, we made the console robust enough for enterprise-grade use.
+
+---
+
+## 🔥 Phase 10.8: Dynamic Plugin Hot-Reload
+**Date:** March 19, 2026
+**Status:** ✅ Completed
+
+### What we did
+- Implemented **`sync_with_registry()`** in the `PluginManager`: The system now detects changes to `registry.json` without a backend restart.
+- Engineered **Worker-Side Synchronization**: Celery workers now call the sync logic before *every* task.
+- Automated **Tool Registration Bridges**: Enabling a `ToolPlugin` via the UI automatically registers its tools with the global `ToolRegistry` and exposes them to agents immediately.
+
+### Why we did it
+- **Zero-Downtime Operations**: In a production agent environment, you cannot afford to restart the entire backend server just to add or remove a single tool.
+- **Developer Velocity**: Eliminating the "Restart Server -> Wait for Init" loop during plugin development saves hours of friction every week.
+- **Consistency**: By syncing at the worker level, we ensure that every node in a potentially distributed cluster sees the same plugin state as the dashboard.
