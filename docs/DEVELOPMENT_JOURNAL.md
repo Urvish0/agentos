@@ -595,4 +595,19 @@
 ### Why we did it
 - **Zero-Downtime Operations**: In a production agent environment, you cannot afford to restart the entire backend server just to add or remove a single tool.
 - **Developer Velocity**: Eliminating the "Restart Server -> Wait for Init" loop during plugin development saves hours of friction every week.
-- **Consistency**: By syncing at the worker level, we ensure that every node in a potentially distributed cluster sees the same plugin state as the dashboard.
+- **Consistency**: By syncing at the worker level, we ensure that every node in a potentially distributed cluster sees the same plugin state as the dashboard.
+
+---
+
+## Phase 11: Documentation & Examples
+**Date**: March 2026
+**Focus**: Enhancing developer onboarding, API usability, and providing template workflows.
+
+### What Was Built
+1. **Comprehensive Guides**: Completely rewrote the root `README.md` to serve as a fast-track Quickstart and Installation Guide.
+2. **API Reference & Contribution**: Added `API_REFERENCE.md` explaining SDK/REST endpoints and `CONTRIBUTING.md` defining setup and PR flows.
+3. **Example Agents**: Created real-world scripts demonstrating SDK usage (`research_agent.py`, `coding_agent.py`, and `resume_agent.py`).
+
+### Design Decisions
+- **SDK-First Examples**: Highlighted the Python SDK (`AgentOS()`) rather than raw HTTP requests to promote idiomatic usage of the platform.
+- **Generic Example Tools**: Utilized built-in tools (`web_search`, `filesystem`) for examples to ensure they run correctly right out of the box without complicated environment requirements.

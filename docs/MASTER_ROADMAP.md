@@ -80,7 +80,8 @@ agentos/
 - [x] **Phase 7** — Evaluation Framework (COMPLETED)
 - [x] **Phase 8** — Developer Interfaces (CLI + SDK) (COMPLETED)
 - [x] **Phase 9** — Plugin Ecosystem (COMPLETED)
-- [ ] **Phase 10** — Dashboard & Web UI (NOT STARTED)
+- [x] **Phase 10** — Dashboard & Web UI (COMPLETED)
+- [x] **Phase 11** — Documentation & Examples (COMPLETED)
 
 ---
 
@@ -502,13 +503,13 @@ Build a web dashboard for monitoring and managing agents visually.
 
 ## 📋 Phase 11 — Documentation & Examples
 
-> **Status**: NOT STARTED | **Depends on**: Phases 2-8
+> **Status**: COMPLETED ✅ | **Depends on**: Phases 2-8
 
 ### Sub-Phases
-- [ ] Write installation guide and quickstart tutorial
-- [ ] Create example agents: Research Agent, Coding Agent, Resume Agent
-- [ ] Add API reference documentation
-- [ ] Add `CONTRIBUTING.md` with detailed contribution guidelines
+- [x] Write installation guide and quickstart tutorial
+- [x] Create example agents: Research Agent, Coding Agent, Resume Agent
+- [x] Add API reference documentation
+- [x] Add `CONTRIBUTING.md` with detailed contribution guidelines
 
 **Key Files**: `docs/`, `examples/`
 
