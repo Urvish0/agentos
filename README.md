@@ -50,6 +50,17 @@ agentos tasks run researcher --input "What are the latest developments in quantu
 ```
 *(For full SDK examples, check the `examples/` directory).*
 
+## 🚢 Production Deployment
+To run the entire AgentOS stack in a production-ready containerized environment:
+```bash
+# Configure your environment variables (if not already done)
+cp .env.example .env
+
+# Build and start all services via the production compose file
+docker compose -f docker/docker-compose.prod.yml up -d --build
+```
+*The Dashboard runs at `http://localhost:3000` and API at `http://localhost:8000`.*
+
 ## 📚 Documentation
 - [Architecture Vision & Design](docs/architecture/VISION.md)
 - [API Reference](docs/API_REFERENCE.md)

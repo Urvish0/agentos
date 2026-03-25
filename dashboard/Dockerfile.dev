@@ -1,0 +1,17 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Install dependencies
+COPY package.json package-lock.json* ./
+RUN npm install
+
+# Copy application code
+# (For best local dev experience, typically node_modules are kept in the container
+# and the src directory is mounted as a volume in your docker-compose.dev.yml)
+COPY . .
+
+EXPOSE 3000
+
+# Start Next.js development server
+CMD ["npm", "run", "dev"]

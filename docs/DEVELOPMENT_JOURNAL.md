@@ -610,4 +610,18 @@
 
 ### Design Decisions
 - **SDK-First Examples**: Highlighted the Python SDK (`AgentOS()`) rather than raw HTTP requests to promote idiomatic usage of the platform.
-- **Generic Example Tools**: Utilized built-in tools (`web_search`, `filesystem`) for examples to ensure they run correctly right out of the box without complicated environment requirements.
+- **Generic Example Tools**: Utilized built-in tools (`web_search`, `filesystem`) for examples to ensure they run correctly right out of the box without complicated environment requirements.
+
+---
+
+## Phase 12.1: Production Containerization
+**Date**: March 2026
+**Focus**: Establishing the production deployment footprint for AgentOS via Docker.
+
+### What Was Built
+1. **Multi-stage Backend Dockerfile**: Created a minimal image using `uv` to manage ultra-fast, robust virtual environments, dropping build-time tools from the final image stage.
+2. **Standalone Next.js Image**: Configured `next.config.ts` for standalone output to produce an incredibly small Next.js Node Alpine runner image.
+3. **Production Orchestration**: Added `docker-compose.prod.yml` to run the frontend, backend FastAPI server, and celery workers linked with databases natively.
+
+### Why we did it
+We realigned the roadmap to bring Production Containerization forward into Phase 12.1 so that we could perform proper security scanning on the actual production Docker images *before* attempting to publish them.

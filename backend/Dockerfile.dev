@@ -1,0 +1,24 @@
+FROM python:3.13-slim
+
+WORKDIR /app
+
+# Install uv for extremely fast package management
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Install dependencies (development mode)
+COPY pyproject.toml uv.lock ./
+RUN uv sync --no-install-project
+
+# Copy application code 
+# (In true local dev, you'd volume mount the /app directory)
+COPY . .
+
+# Set up environment variables
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app/src"
+ENV API_HOST="0.0.0.0"
+
+EXPOSE 8000
+
+# Run via hot-reloading native python entrypoint
+CMD ["python", "main.py"]

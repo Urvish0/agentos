@@ -32,7 +32,7 @@ def main():
 
     uvicorn.run(
         "agentos.api.app:app",
-        host=config.api_host,
+        host=os.environ.get("API_HOST", "0.0.0.0"),
         port=config.api_port,
         reload=config.debug,
         proxy_headers=True,
